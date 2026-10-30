@@ -122,11 +122,10 @@ public final class StatsManager implements Listener, CommandExecutor {
         }
     }
 
-    // ---------- /top ----------
+    // ---------- Toplisták ----------
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        String type = args.length > 0 ? args[0].toLowerCase() : "playtime";
+    /** Rendezett lista (csökkenő) a megadott típushoz, vagy null, ha ismeretlen a típus. */
+    public List<Map.Entry<UUID, Long>> ranking(String type) {
         List<Map.Entry<UUID, Long>> list = new ArrayList<>();
         switch (type) {
             case "playtime" -> {
@@ -146,11 +145,36 @@ public final class StatsManager implements Listener, CommandExecutor {
             }
             case "balance" -> list.addAll(plugin.economy().all().entrySet());
             default -> {
-                plugin.send(sender, "top-usage");
-                return true;
+                return null;
             }
         }
+        list.removeIf(e -> e.getValue() <= 0);
         list.sort((a, b) -> Long.compare(b.getValue(), a.getValue()));
+        return list;
+    }
+
+    public String formatValue(String type, long value) {
+        return switch (type) {
+            case "playtime" -> formatTime(value);
+            case "balance" -> plugin.money(value);
+            default -> String.valueOf(value);
+        };
+    }
+
+    // ---------- /top ----------
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        String type = args.length > 0 ? args[0].toLowerCase() : "playtime";
+        List<Map.Entry<UUID, Long>> list = ranking(type);
+        if (list == null) {
+            plugin.send(sender, "top-usage");
+            return true;
+        }
+        if (sender instanceof Player player) {
+            plugin.tops().open(player, type);
+            return true;
+        }
 
         plugin.send(sender, "top-title-" + type);
         int rank = 1;
@@ -158,15 +182,10 @@ public final class StatsManager implements Listener, CommandExecutor {
             if (rank > 10) {
                 break;
             }
-            String value = switch (type) {
-                case "playtime" -> formatTime(entry.getValue());
-                case "balance" -> plugin.money(entry.getValue());
-                default -> String.valueOf(entry.getValue());
-            };
             plugin.send(sender, "top-line",
                     Placeholder.unparsed("rank", String.valueOf(rank)),
                     Placeholder.unparsed("player", plugin.name(entry.getKey())),
-                    Placeholder.unparsed("value", value));
+                    Placeholder.unparsed("value", formatValue(type, entry.getValue())));
             rank++;
         }
         return true;

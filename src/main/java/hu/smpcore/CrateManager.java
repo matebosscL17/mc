@@ -3,10 +3,16 @@ package hu.smpcore;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
+import org.bukkit.FireworkEffect;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.World;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
+import org.bukkit.block.Lidded;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -14,6 +20,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.EventHandler;
@@ -29,7 +36,9 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Transformation;
 import org.joml.AxisAngle4f;
@@ -38,6 +47,7 @@ import org.joml.Vector3f;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -73,7 +83,8 @@ public final class CrateManager implements Listener, CommandExecutor {
     private final NamespacedKey keyTag;
     /** blokk kulcs -> láda azonosító */
     private final Map<String, String> placed = new LinkedHashMap<>();
-    private final Map<String, String[]> placedLocations = new LinkedHashMap<>();
+    private BukkitTask particleTask;
+    private double angle;
     private final Set<UUID> opening = ConcurrentHashMap.newKeySet();
 
     public CrateManager(SMPCore plugin) {
@@ -235,11 +246,11 @@ public final class CrateManager implements Listener, CommandExecutor {
         if (action == Action.LEFT_CLICK_BLOCK || player.isSneaking()) {
             preview(player, crate);
         } else {
-            open(player, crate);
+            open(player, crate, block);
         }
     }
 
-    private void open(Player player, String id) {
+    private void open(Player player, String id, Block block) {
         List<Reward> rewards = rewards(id);
         if (rewards.isEmpty()) {
             plugin.send(player, "crate-unknown", Placeholder.unparsed("crate", id));
@@ -251,6 +262,7 @@ public final class CrateManager implements Listener, CommandExecutor {
         }
         ItemStack hand = player.getInventory().getItemInMainHand();
         if (!isKey(hand, id)) {
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.8f, 1f);
             plugin.send(player, "crate-no-key", Placeholder.parsed("crate", crateName(id)));
             return;
         }
@@ -265,7 +277,7 @@ public final class CrateManager implements Listener, CommandExecutor {
 
         Reward result = pick(rewards);
         grant(player, result); // a nyeremény azonnal megvan, az animáció csak látvány
-        animate(player, id, rewards, result);
+        animate(player, id, rewards, result, block);
     }
 
     private void grant(Player player, Reward reward) {
@@ -310,51 +322,131 @@ public final class CrateManager implements Listener, CommandExecutor {
         return item;
     }
 
-    private void animate(Player player, String id, List<Reward> rewards, Reward result) {
+    private static final Material[] RAINBOW = {
+            Material.RED_STAINED_GLASS_PANE, Material.ORANGE_STAINED_GLASS_PANE,
+            Material.YELLOW_STAINED_GLASS_PANE, Material.LIME_STAINED_GLASS_PANE,
+            Material.CYAN_STAINED_GLASS_PANE, Material.BLUE_STAINED_GLASS_PANE,
+            Material.PURPLE_STAINED_GLASS_PANE, Material.MAGENTA_STAINED_GLASS_PANE};
+
+    private double percent(List<Reward> list, Reward reward) {
+        int total = 0;
+        for (Reward r : list) {
+            total += r.weight();
+        }
+        return 100.0 * reward.weight() / Math.max(1, total);
+    }
+
+    private static Material rarityPane(double pct) {
+        if (pct <= 5) {
+            return Material.ORANGE_STAINED_GLASS_PANE;
+        }
+        if (pct <= 15) {
+            return Material.PURPLE_STAINED_GLASS_PANE;
+        }
+        if (pct <= 35) {
+            return Material.LIGHT_BLUE_STAINED_GLASS_PANE;
+        }
+        return Material.LIME_STAINED_GLASS_PANE;
+    }
+
+    private static String rarityLabel(double pct) {
+        if (pct <= 5) {
+            return "<gold><bold>LEGENDÁS";
+        }
+        if (pct <= 15) {
+            return "<light_purple><bold>EPIKUS";
+        }
+        if (pct <= 35) {
+            return "<aqua><bold>RITKA";
+        }
+        return "<green><bold>KÖZÖNSÉGES";
+    }
+
+    private void celebrate(Block block, double pct) {
+        Location loc = block.getLocation().add(0.5, 1.2, 0.5);
+        Color main = pct <= 5 ? Color.ORANGE : pct <= 15 ? Color.PURPLE : pct <= 35 ? Color.AQUA : Color.LIME;
+        FireworkEffect.Type type = pct <= 15 ? FireworkEffect.Type.BALL_LARGE : FireworkEffect.Type.BALL;
+        Firework fw = loc.getWorld().spawn(loc, Firework.class, f -> {
+            FireworkMeta meta = f.getFireworkMeta();
+            meta.addEffect(FireworkEffect.builder().with(type).withColor(main, Color.WHITE)
+                    .withFade(Color.YELLOW).trail(true).flicker(true).build());
+            f.setFireworkMeta(meta);
+        });
+        fw.detonate();
+    }
+
+    private void animate(Player player, String id, List<Reward> rewards, Reward result, Block block) {
         UUID uuid = player.getUniqueId();
         opening.add(uuid);
+        if (block.getState() instanceof Lidded lid) {
+            lid.open();
+        }
+        double pct = percent(rewards, result);
 
         UiHolder holder = new UiHolder();
         Inventory inv = Bukkit.createInventory(holder, 27, plugin.parse(crateName(id)));
         holder.inventory = inv;
-        ItemStack dark = filler(Material.BLACK_STAINED_GLASS_PANE);
-        for (int i = 0; i < 27; i++) {
-            inv.setItem(i, dark);
-        }
-        inv.setItem(4, filler(Material.LIME_STAINED_GLASS_PANE));
-        inv.setItem(22, filler(Material.LIME_STAINED_GLASS_PANE));
         player.openInventory(inv);
 
-        int frames = 28;
+        int frames = 32;
         List<Reward> sequence = new ArrayList<>();
         for (int i = 0; i < frames + 8; i++) {
             sequence.add(pick(rewards));
         }
         sequence.set(frames - 1 + 4, result); // az utolsó képkockán a középső helyen a nyeremény áll
 
+        Location center = block.getLocation().add(0.5, 1.3, 0.5);
         long time = 0;
         for (int f = 0; f < frames; f++) {
-            time += f < 16 ? 2 : (f < 22 ? 4 : 7);
+            time += f < 18 ? 2 : (f < 26 ? 4 : 7);
             int frame = f;
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-                for (int s = 0; s < 9; s++) {
-                    inv.setItem(9 + s, icon(sequence.get(frame + s)));
+                for (int i = 0; i < 9; i++) {
+                    Material pane = RAINBOW[(frame + i) % RAINBOW.length];
+                    inv.setItem(i, filler(pane));
+                    inv.setItem(18 + i, filler(pane));
+                    inv.setItem(9 + i, icon(sequence.get(frame + i)));
                 }
+                inv.setItem(4, pointer(Material.HOPPER, "▼"));
+                inv.setItem(22, pointer(Material.END_ROD, "▲"));
+                center.getWorld().spawnParticle(Particle.END_ROD, center, 8, 0.35, 0.3, 0.35, 0.03);
                 if (player.isOnline()) {
-                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.6f, 1.2f);
+                    player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.7f,
+                            0.6f + 1.4f * frame / frames);
                 }
             }, time);
         }
 
+        long finish = time + 12;
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            Material pane = rarityPane(pct);
+            for (int i = 0; i < 27; i++) {
+                inv.setItem(i, filler(pane));
+            }
+            ItemStack won = icon(result);
+            ItemMeta meta = won.getItemMeta();
+            meta.setEnchantmentGlintOverride(true);
+            meta.lore(List.of(plugin.parse("<!italic>" + rarityLabel(pct))));
+            won.setItemMeta(meta);
+            inv.setItem(13, won);
+            celebrate(block, pct);
+            if (player.isOnline()) {
+                player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
+                player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1f);
+            }
+        }, finish);
+
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             opening.remove(uuid);
+            if (block.getState() instanceof Lidded lid) {
+                lid.close();
+            }
             if (!player.isOnline()) {
                 return;
             }
             if (player.getOpenInventory().getTopInventory().getHolder() instanceof UiHolder) {
                 player.closeInventory();
             }
-            player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
             plugin.send(player, "crate-won", Placeholder.parsed("reward", result.name()));
             if (result.broadcast()) {
                 Bukkit.broadcast(plugin.msg("crate-broadcast",
@@ -362,7 +454,15 @@ public final class CrateManager implements Listener, CommandExecutor {
                         Placeholder.parsed("reward", result.name()),
                         Placeholder.parsed("crate", crateName(id))));
             }
-        }, time + 30);
+        }, finish + 45);
+    }
+
+    private ItemStack pointer(Material material, String name) {
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(plugin.parse("<!italic><yellow><bold>" + name));
+        item.setItemMeta(meta);
+        return item;
     }
 
     private void preview(Player player, String id) {
@@ -371,28 +471,36 @@ public final class CrateManager implements Listener, CommandExecutor {
             plugin.send(player, "crate-unknown", Placeholder.unparsed("crate", id));
             return;
         }
-        int total = 0;
-        for (Reward r : rewards) {
-            total += r.weight();
-        }
-        int size = Math.min(54, Math.max(9, ((rewards.size() + 8) / 9) * 9));
+        List<Reward> sorted = new ArrayList<>(rewards);
+        sorted.sort(Comparator.comparingInt(Reward::weight)); // a legritkább elöl
+        int rows = Math.min(6, (sorted.size() + 6) / 7 + 2);
+        int size = rows * 9;
         UiHolder holder = new UiHolder();
         Inventory inv = Bukkit.createInventory(holder, size, plugin.parse(crateName(id)));
         holder.inventory = inv;
-        int slot = 0;
-        for (Reward r : rewards) {
-            if (slot >= size) {
+        ItemStack border = filler(Material.GRAY_STAINED_GLASS_PANE);
+        for (int i = 0; i < size; i++) {
+            inv.setItem(i, border);
+        }
+        int index = 0;
+        for (Reward r : sorted) {
+            int row = 1 + index / 7;
+            if (row >= rows - 1) {
                 break;
             }
+            double chance = percent(rewards, r);
             ItemStack item = icon(r);
             ItemMeta meta = item.getItemMeta();
-            double chance = 100.0 * r.weight() / total;
-            meta.lore(List.of(plugin.msg("crate-chance",
-                    Placeholder.unparsed("chance", String.format(Locale.ROOT, "%.1f", chance)))));
+            meta.lore(List.of(
+                    plugin.parse("<!italic>" + rarityLabel(chance)),
+                    plugin.msg("crate-chance", Placeholder.unparsed("chance",
+                            String.format(Locale.ROOT, "%.1f", chance)))));
             item.setItemMeta(meta);
-            inv.setItem(slot++, item);
+            inv.setItem(row * 9 + 1 + index % 7, item);
+            index++;
         }
         player.openInventory(inv);
+        player.playSound(player.getLocation(), Sound.BLOCK_CHEST_OPEN, 0.6f, 1.2f);
     }
 
     @EventHandler
@@ -577,13 +685,57 @@ public final class CrateManager implements Listener, CommandExecutor {
     }
 
     private void spawnHologram(Block block, String id) {
-        Block above = block;
-        above.getWorld().spawn(above.getLocation().add(0.5, 1.7, 0.5), TextDisplay.class, display -> {
-            display.text(plugin.parse(crateName(id) + "<newline>" + plugin.cfg("messages.crate-holo")));
+        block.getWorld().spawn(block.getLocation().add(0.5, 1.9, 0.5), TextDisplay.class, display -> {
+            display.text(plugin.parse(crateName(id) + "<newline><newline>" + plugin.cfg("messages.crate-holo")));
             display.setBillboard(Display.Billboard.CENTER);
+            display.setShadowed(true);
+            display.setBackgroundColor(Color.fromARGB(110, 0, 0, 0));
             display.setTransformation(new Transformation(new Vector3f(), new AxisAngle4f(),
                     new Vector3f(1.2f, 1.2f, 1.2f), new AxisAngle4f()));
             display.addScoreboardTag(TAG);
         });
+    }
+
+    // ---------- Részecskék a ládák körül ----------
+
+    public void start() {
+        stop();
+        particleTask = plugin.getServer().getScheduler().runTaskTimer(plugin, this::tickParticles, 20L, 3L);
+    }
+
+    public void stop() {
+        if (particleTask != null) {
+            particleTask.cancel();
+            particleTask = null;
+        }
+    }
+
+    private void tickParticles() {
+        angle += 0.4;
+        for (String k : placed.keySet()) {
+            String[] p = k.split(";");
+            World w = Bukkit.getWorld(p[0]);
+            if (w == null) {
+                continue;
+            }
+            Location base = new Location(w, Integer.parseInt(p[1]) + 0.5, Integer.parseInt(p[2]),
+                    Integer.parseInt(p[3]) + 0.5);
+            boolean near = false;
+            for (Player pl : w.getPlayers()) {
+                if (pl.getLocation().distanceSquared(base) < 1600) {
+                    near = true;
+                    break;
+                }
+            }
+            if (!near) {
+                continue;
+            }
+            for (int i = 0; i < 2; i++) {
+                double a = angle + i * Math.PI;
+                double y = 0.2 + ((angle * 0.3 + i * 0.7) % 1.5);
+                w.spawnParticle(Particle.END_ROD, base.getX() + Math.cos(a) * 0.8, base.getY() + y,
+                        base.getZ() + Math.sin(a) * 0.8, 1, 0, 0, 0, 0);
+            }
+        }
     }
 }

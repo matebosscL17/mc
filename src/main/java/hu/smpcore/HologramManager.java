@@ -2,6 +2,7 @@ package hu.smpcore;
 
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -47,7 +48,7 @@ public final class HologramManager implements CommandExecutor {
 
     public void start() {
         stop();
-        task = plugin.getServer().getScheduler().runTaskTimer(plugin, this::updateAll, 100L, 600L);
+        task = plugin.getServer().getScheduler().runTaskTimer(plugin, this::updateAll, 100L, 200L);
     }
 
     public void stop() {
@@ -91,46 +92,40 @@ public final class HologramManager implements CommandExecutor {
 
     // ---------- Szöveg ----------
 
-    private String content(String type) {
-        List<Map.Entry<UUID, Long>> list = new ArrayList<>();
-        switch (type) {
-            case "playtime" -> {
-                for (UUID id : stats.players()) {
-                    list.add(Map.entry(id, stats.playMillis(id)));
-                }
-            }
-            case "kills" -> {
-                for (UUID id : stats.players()) {
-                    list.add(Map.entry(id, stats.kills(id)));
-                }
-            }
-            case "deaths" -> {
-                for (UUID id : stats.players()) {
-                    list.add(Map.entry(id, stats.deaths(id)));
-                }
-            }
-            default -> list.addAll(plugin.economy().all().entrySet());
-        }
-        list.sort((a, b) -> Long.compare(b.getValue(), a.getValue()));
+    private static String rankColor(int rank) {
+        return switch (rank) {
+            case 1 -> "<gold><bold>";
+            case 2 -> "<#c0c0c0><bold>";
+            case 3 -> "<#cd7f32><bold>";
+            default -> "<white>";
+        };
+    }
 
-        StringBuilder text = new StringBuilder(plugin.cfg("messages.holo-title-" + type));
+    private String content(String type) {
+        List<Map.Entry<UUID, Long>> list = stats.ranking(type);
+        if (list == null) {
+            list = new ArrayList<>();
+        }
+        String line = "<dark_gray><strikethrough>                                  ";
+        StringBuilder text = new StringBuilder();
+        text.append("<gradient:#ffd700:#ff8c00><bold>✦ PENTHOUSE SMP ✦</bold></gradient><newline>");
+        text.append(plugin.cfg("messages.holo-title-" + type)).append("<newline>");
+        text.append(line).append("<newline>");
         int rank = 1;
         for (Map.Entry<UUID, Long> entry : list) {
             if (rank > 10) {
                 break;
             }
-            String value = switch (type) {
-                case "playtime" -> StatsManager.formatTime(entry.getValue());
-                case "balance" -> plugin.money(entry.getValue());
-                default -> String.valueOf(entry.getValue());
-            };
-            text.append("<newline><yellow>").append(rank).append(". <white>")
-                    .append(plugin.name(entry.getKey())).append(" <gray>- <white>").append(value);
+            String marker = rank <= 3 ? "<yellow>★ " : "<gray>" + rank + ". ";
+            text.append(marker).append(rankColor(rank)).append(plugin.name(entry.getKey()))
+                    .append(" <dark_gray>» <green>").append(stats.formatValue(type, entry.getValue()))
+                    .append("<newline>");
             rank++;
         }
         if (list.isEmpty()) {
-            text.append("<newline><gray>Még nincs adat.");
+            text.append("<gray><italic>Még nincs adat.<newline>");
         }
+        text.append(line).append("<newline><dark_gray><italic>Részletek: <gray>/top");
         return text.toString();
     }
 
@@ -188,8 +183,10 @@ public final class HologramManager implements CommandExecutor {
         TextDisplay display = loc.getWorld().spawn(loc, TextDisplay.class, d -> {
             d.text(plugin.parse(content(type)));
             d.setBillboard(Display.Billboard.CENTER);
+            d.setShadowed(true);
+            d.setBackgroundColor(Color.fromARGB(120, 0, 0, 0));
             d.setTransformation(new Transformation(new Vector3f(), new AxisAngle4f(),
-                    new Vector3f(1.3f, 1.3f, 1.3f), new AxisAngle4f()));
+                    new Vector3f(1.4f, 1.4f, 1.4f), new AxisAngle4f()));
             d.addScoreboardTag(TAG);
         });
         holograms.put(display.getUniqueId(), type);

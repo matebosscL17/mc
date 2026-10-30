@@ -52,6 +52,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
     private CrateManager crates;
     private BindManager binds;
     private HologramManager holos;
+    private TopManager tops;
 
     @Override
     public void onEnable() {
@@ -75,6 +76,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         crates = new CrateManager(this);
         binds = new BindManager(this);
         holos = new HologramManager(this, stats);
+        tops = new TopManager(this, stats);
 
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(this, this);
@@ -90,6 +92,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         pm.registerEvents(lobby, this);
         pm.registerEvents(crates, this);
         pm.registerEvents(binds, this);
+        pm.registerEvents(tops, this);
 
         for (String name : List.of("rules", "discord", "death", "smpcore")) {
             bind(name, this);
@@ -118,6 +121,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         afk.start();
         backup.start();
         holos.start();
+        crates.start();
 
         // 5 percenként mentés
         getServer().getScheduler().runTaskTimer(this, this::saveAll, 6000L, 6000L);
@@ -127,6 +131,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
     @Override
     public void onDisable() {
         holos.stop();
+        crates.stop();
         backup.stop();
         afk.stop();
         saveAll();
@@ -148,6 +153,10 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
     }
 
     // ---------- Közös segédfüggvények (a többi osztály is használja) ----------
+
+    public TopManager tops() {
+        return tops;
+    }
 
     public Economy economy() {
         return economy;

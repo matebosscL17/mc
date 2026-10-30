@@ -429,7 +429,7 @@ messages:
   crate-removed: "<green>A láda eltávolítva."
   crate-key-received: "<green>Kaptál <white><amount>x <crate> <green>kulcsot."
   crate-key-given: "<green>Kulcs átadva."
-  crate-holo: "<gray>Jobb klikk: nyitás <newline><gray>Bal klikk: nyeremények"
+  crate-holo: "<yellow>▶ Jobb klikk: <white>nyitás<newline><gray>◆ Bal klikk: <white>nyeremények"
   look-at-block: "<red>Nézz egy blokkra (vagy NPC-re)!"
   # --- Bind / hologram ---
   bind-usage: "<yellow>/bind <parancs> | remove | list | npc <név_alulvonással> <parancs>"
