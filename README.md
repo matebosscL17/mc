@@ -8,6 +8,7 @@ Paper 1.21.x plugin SMP szerverhez (Java 21).
 - **Shop:** `/shop` (GUI, bal klikk = vétel, jobb klikk = eladás, shift = 16 db), `/sell` (kézben lévő), `/sell all`
 - **Fejpénz:** `/bounty [játékos] [összeg]`, `/bounty list`; aki megöli a játékost, megkapja
 - **Napi jutalom:** `/daily`, egymás utáni napokra nő
+- **Sidebar scoreboard:** oldalt a szerver neve, pénz, ölés/halál, játszott idő, online létszám. `/sidebar` kapcsolja ki-be. A szerver nevét a config `sidebar.title` sorában írd át.
 - **Toplisták:** `/top [playtime|kills|deaths|balance]`
 - Halál koordináták + `/death`, PvP fejek, belépő/kilépő üzenetek, üdvözlő title, `/rules`, `/discord`
 - `/smpcore reload` újratölti a configot (jog: `smpcore.admin`)

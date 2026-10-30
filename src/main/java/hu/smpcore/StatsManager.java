@@ -76,7 +76,15 @@ public final class StatsManager implements Listener, CommandExecutor {
         return data.computeIfAbsent(id, k -> new long[3]);
     }
 
-    private long playMillis(UUID id) {
+    public long kills(UUID id) {
+        return stats(id)[KILLS];
+    }
+
+    public long deaths(UUID id) {
+        return stats(id)[DEATHS];
+    }
+
+    public long playMillis(UUID id) {
         long base = stats(id)[PLAY_MS];
         Long start = sessionStart.get(id);
         return start == null ? base : base + (System.currentTimeMillis() - start);
@@ -160,7 +168,7 @@ public final class StatsManager implements Listener, CommandExecutor {
         return true;
     }
 
-    private static String formatTime(long millis) {
+    public static String formatTime(long millis) {
         long minutes = millis / 60_000L;
         return (minutes / 60) + " ó " + (minutes % 60) + " p";
     }

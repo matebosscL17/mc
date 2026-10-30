@@ -37,6 +37,8 @@ commands:
     usage: /bounty [játékos] [összeg] | /bounty list
   daily:
     description: Napi jutalom
+  sidebar:
+    description: Oldalsó scoreboard ki/be
   top:
     description: Toplisták
     usage: /top [playtime|kills|deaths|balance]

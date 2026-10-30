@@ -50,6 +50,23 @@ daily:
   # Ennyi napig nő a bónusz
   max-streak-days: 7
 
+# Oldalsó scoreboard (a képernyő jobb szélén). Legfeljebb 15 sor.
+# Placeholderek: <player>, <money>, <kills>, <deaths>, <playtime>, <online>, <max>
+# Üres sor: ""
+sidebar:
+  enabled: true
+  # IDE ÍRD A SZERVER NEVÉT
+  title: "<gradient:gold:yellow><bold>SZERVER NEVE"
+  lines:
+    - "<gray>Játékos: <white><player>"
+    - ""
+    - "<gold>Pénz: <white><money>"
+    - "<red>Ölés: <white><kills> <gray>| <red>Halál: <white><deaths>"
+    - "<aqua>Játszott idő: <white><playtime>"
+    - ""
+    - "<green>Online: <white><online><gray>/<white><max>"
+    - "<dark_gray>play.szerver.hu"
+
 # Shop: legfeljebb 45 tárgy fér el az egy oldalas menüben.
 # buy = ennyiért vehető meg (0 = nem vehető), sell = ennyiért adható el (0 = nem adható el).
 # Tipp: az eladási ár legyen mindig kisebb, mint a vételár.
@@ -161,3 +178,7 @@ messages:
   top-title-kills: "<gold><bold>Top gyilkosok"
   top-title-deaths: "<gold><bold>Legtöbbet haltak"
   top-title-balance: "<gold><bold>Leggazdagabbak"
+
+  # Sidebar
+  sidebar-on: "<green>Az oldalsó scoreboard bekapcsolva."
+  sidebar-off: "<gray>Az oldalsó scoreboard kikapcsolva. (/sidebar a visszakapcsoláshoz)"

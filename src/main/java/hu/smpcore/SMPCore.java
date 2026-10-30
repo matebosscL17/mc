@@ -42,6 +42,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
     private BountyManager bounties;
     private DailyManager daily;
     private StatsManager stats;
+    private SidebarManager sidebar;
 
     @Override
     public void onEnable() {
@@ -53,6 +54,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         bounties = new BountyManager(this);
         daily = new DailyManager(this);
         stats = new StatsManager(this);
+        sidebar = new SidebarManager(this, stats);
 
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(this, this);
@@ -60,6 +62,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         pm.registerEvents(shop, this);
         pm.registerEvents(bounties, this);
         pm.registerEvents(stats, this);
+        pm.registerEvents(sidebar, this);
 
         for (String name : List.of("rules", "discord", "death", "smpcore")) {
             bind(name, this);
@@ -74,6 +77,8 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         bind("daily", daily);
         bind("top", stats);
         bind("graves", graves);
+        bind("sidebar", sidebar);
+        sidebar.start();
 
         // 5 percenként mentés
         getServer().getScheduler().runTaskTimer(this, this::saveAll, 6000L, 6000L);
@@ -252,6 +257,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
                 if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
                     reloadConfig();
                     shop.reload();
+                    sidebar.reload();
                     send(sender, "reloaded");
                 } else {
                     send(sender, "usage-smpcore");
