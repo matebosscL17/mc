@@ -6,13 +6,13 @@
 join-quit:
   enabled: true
   join: "<green>+ <white><player> <gray>csatlakozott"
-  first-join: "<gold>★ <white><player> <gold>először csatlakozott a szerverre! Üdv!"
+  first-join: "<gold>★ <white><player> <gold>először csatlakozott a Penthouse SMP-re! Üdv!"
   quit: "<red>- <white><player> <gray>kilépett"
 
 welcome-title:
   enabled: true
-  title: "<gradient:gold:yellow><bold>Üdv, <player>!"
-  subtitle: "<gray>Érezd jól magad a szerveren"
+  title: "<gradient:#ffd700:#ff8c00><bold>PENTHOUSE SMP"
+  subtitle: "<gray>Üdv, <white><player><gray>! Érezd jól magad."
 
 death-coords:
   enabled: true
@@ -52,27 +52,28 @@ daily:
 
 # Oldalsó scoreboard (a képernyő jobb szélén). Legfeljebb 15 sor.
 # Placeholderek: <player>, <money>, <kills>, <deaths>, <playtime>, <online>, <max>
-# Üres sor: ""
+# Színek: <#ffd700> formátumban hex is használható. Üres sor: ""
 sidebar:
   enabled: true
-  # IDE ÍRD A SZERVER NEVÉT
-  title: "<gradient:gold:yellow><bold>SZERVER NEVE"
+  title: "<gradient:#ffd700:#ff8c00><bold>✦ PENTHOUSE SMP ✦"
   lines:
-    - "<gray>Játékos: <white><player>"
+    - "<dark_gray>▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"
+    - "<#ffd700>◆ <gray>Játékos<dark_gray>: <white><player>"
+    - "<#ffd700>◆ <gray>Pénz<dark_gray>: <green><money>"
     - ""
-    - "<gold>Pénz: <white><money>"
-    - "<red>Ölés: <white><kills> <gray>| <red>Halál: <white><deaths>"
-    - "<aqua>Játszott idő: <white><playtime>"
+    - "<red>⚔ <gray>Ölés<dark_gray>: <white><kills>  <dark_red>☠ <gray>Halál<dark_gray>: <white><deaths>"
+    - "<#55ffff>◆ <gray>Játszott idő<dark_gray>: <white><playtime>"
     - ""
-    - "<green>Online: <white><online><gray>/<white><max>"
-    - "<dark_gray>play.szerver.hu"
+    - "<green>● <gray>Online<dark_gray>: <white><online><dark_gray>/<gray><max>"
+    - "<dark_gray>▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"
+    - "<#ffd700>   play.szerver.hu"
 
 # Shop: főmenü kategóriákkal, minden kategória lapozható (oldalanként 45 tárgy).
 # buy = ennyiért vehető meg (0 = nem vehető), sell = ennyiért adható el (0 = nem adható el).
 # Tipp: az eladási ár legyen mindig kisebb, mint a vételár.
 # Új kategória: másolj egy blokkot, adj neki új kulcsot. Legfeljebb 14 kategória fér a menübe.
 shop:
-  title: "<gold><bold>Shop"
+  title: "<gradient:#ffd700:#ff8c00><bold>Penthouse Shop"
   categories:
     blocks:
       icon: BRICKS

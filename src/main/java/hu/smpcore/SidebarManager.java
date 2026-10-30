@@ -1,5 +1,6 @@
 package hu.smpcore;
 
+import io.papermc.paper.scoreboard.numbers.NumberFormat;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
@@ -138,6 +139,7 @@ public final class SidebarManager implements Listener, CommandExecutor {
         Objective objective = board.registerNewObjective(OBJECTIVE, Criteria.DUMMY,
                 plugin.parse(plugin.cfg("sidebar.title")));
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+        objective.numberFormat(NumberFormat.blank()); // a piros sorszámok nem látszanak
         for (int i = 0; i < lineCount; i++) {
             Team team = board.registerNewTeam("line" + i);
             team.addEntry(entry(i));

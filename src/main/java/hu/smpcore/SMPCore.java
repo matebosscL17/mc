@@ -52,6 +52,8 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        getConfig().options().copyDefaults(true);
+        saveConfig();
 
         economy = new Economy(this);
         graves = new GraveManager(this);
