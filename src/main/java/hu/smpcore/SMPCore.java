@@ -54,6 +54,11 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
     private HologramManager holos;
     private TopManager tops;
     private WeeklyManager weekly;
+    private RankManager ranks;
+    private TabManager tab;
+    private TeleportManager teleports;
+    private ClaimManager claims;
+    private SleepManager sleep;
 
     @Override
     public void onEnable() {
@@ -79,6 +84,11 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         holos = new HologramManager(this, stats);
         weekly = new WeeklyManager(this, stats);
         tops = new TopManager(this, stats);
+        ranks = new RankManager(this);
+        tab = new TabManager(this);
+        teleports = new TeleportManager(this);
+        claims = new ClaimManager(this);
+        sleep = new SleepManager(this);
 
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(this, this);
@@ -96,6 +106,10 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         pm.registerEvents(binds, this);
         pm.registerEvents(tops, this);
         pm.registerEvents(weekly, this);
+        pm.registerEvents(ranks, this);
+        pm.registerEvents(teleports, this);
+        pm.registerEvents(claims, this);
+        pm.registerEvents(sleep, this);
 
         for (String name : List.of("rules", "discord", "death", "smpcore")) {
             bind(name, this);
@@ -120,12 +134,25 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         bind("crate", crates);
         bind("bind", binds);
         bind("holo", holos);
+        for (String name : List.of("rank", "msg", "reply")) {
+            bind(name, ranks);
+        }
+        for (String name : List.of("sethome", "home", "delhome", "homes", "back", "tpa", "tpaccept", "tpdeny",
+                "tpcancel", "warp", "warps", "setwarp", "delwarp")) {
+            bind(name, teleports);
+        }
+        bind("claim", claims);
+        bind("unclaim", claims);
         sidebar.start();
         afk.start();
         backup.start();
         holos.start();
         crates.start();
         weekly.start();
+        tab.start();
+        for (org.bukkit.entity.Player online : getServer().getOnlinePlayers()) {
+            ranks.refreshTab(online);
+        }
 
         // 5 percenként mentés
         getServer().getScheduler().runTaskTimer(this, this::saveAll, 6000L, 6000L);
@@ -137,6 +164,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         holos.stop();
         crates.stop();
         weekly.stop();
+        tab.stop();
         backup.stop();
         afk.stop();
         saveAll();
@@ -146,18 +174,31 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         economy.save();
         stats.save();
         jobs.save();
+        claims.save();
+        ranks.save();
     }
 
     private void bind(String name, CommandExecutor executor) {
         PluginCommand cmd = getCommand(name);
         if (cmd != null) {
             cmd.setExecutor(executor);
+            if (executor instanceof org.bukkit.command.TabCompleter completer) {
+                cmd.setTabCompleter(completer);
+            }
         } else {
             getLogger().warning("Hiányzó parancs a plugin.yml-ben: " + name);
         }
     }
 
     // ---------- Közös segédfüggvények (a többi osztály is használja) ----------
+
+    public AfkManager afk() {
+        return afk;
+    }
+
+    public RankManager ranks() {
+        return ranks;
+    }
 
     public WeeklyManager weekly() {
         return weekly;

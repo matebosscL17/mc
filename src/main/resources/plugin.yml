@@ -69,6 +69,58 @@ commands:
   holo:
     description: Toplista hologramok (admin)
     usage: /holo create <playtime|kills|deaths|balance> | remove | list
+  rank:
+    description: Rangok kezelése (admin)
+    usage: /rank set [játékos] [rang] | remove [játékos] | list
+  msg:
+    description: Privát üzenet
+    aliases: [w, tell, m]
+    usage: /msg [játékos] [üzenet]
+  reply:
+    description: Válasz az utolsó privát üzenetre
+    aliases: [r]
+    usage: /r [üzenet]
+  sethome:
+    description: Otthon beállítása
+    usage: /sethome [név]
+  home:
+    description: Teleport az otthonodba
+    usage: /home [név]
+  delhome:
+    description: Otthon törlése
+    usage: /delhome [név]
+  homes:
+    description: Otthonaid listája
+  back:
+    description: Vissza az előző helyre (halál után is)
+  tpa:
+    description: Teleport kérés egy játékoshoz
+    usage: /tpa [játékos]
+  tpaccept:
+    description: Teleport kérés elfogadása
+    aliases: [tpyes]
+  tpdeny:
+    description: Teleport kérés elutasítása
+    aliases: [tpno]
+  tpcancel:
+    description: Saját teleport kérés visszavonása
+  warp:
+    description: Teleport egy warpra
+    usage: /warp [név]
+  warps:
+    description: Warpok listája
+  setwarp:
+    description: Warp létrehozása (admin)
+    usage: /setwarp [név]
+  delwarp:
+    description: Warp törlése (admin)
+    usage: /delwarp [név]
+  claim:
+    description: Terület védelem (chunk)
+    aliases: [chunk]
+    usage: /claim | trust [játékos] | untrust [játékos] | info | list | show
+  unclaim:
+    description: Chunk felszabadítása (részleges visszatérítés)
 permissions:
   smpcore.admin:
     description: /smpcore reload, /eco, védett sírok megnyitása

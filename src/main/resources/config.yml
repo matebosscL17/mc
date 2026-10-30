@@ -450,6 +450,70 @@ messages:
   holo-title-balance: "<green><bold>$ Leggazdagabbak"
   weekly-winner: "<gold>★ Heti <type> toplista <gray>#<place>: <white><player> <gray>→ <green><reward>"
   weekly-header: "<gold><bold>Heti jutalmak"
+  # --- Rangok, chat, privát üzenet ---
+  rank-usage: "<yellow>/rank set <játékos> <rang> | remove <játékos> | list"
+  rank-list-header: "<gold><bold>Rangok"
+  rank-list-line: "<gray>- <white><id> <gray>→ <prefix>"
+  rank-unknown: "<red>Ismeretlen rang: <white><id>"
+  rank-set: "<green><player> új rangja: <prefix>"
+  rank-removed: "<green><player> rangja törölve."
+  msg-usage: "<yellow>/msg <játékos> <üzenet>"
+  msg-nobody: "<red>Nincs kinek válaszolnod."
+  msg-to: "<dark_gray>[<gray>Te <dark_gray>→ <white><player><dark_gray>] <gray><message>"
+  msg-from: "<dark_gray>[<white><player> <dark_gray>→ <gray>Te<dark_gray>] <white><message>"
+  # --- Otthonok, teleport, warp ---
+  home-set: "<green>Otthon beállítva: <white><name>"
+  home-deleted: "<green>Otthon törölve: <white><name>"
+  home-none: "<red>Nincs ilyen otthonod: <white><name>"
+  home-none-set: "<red>Még nincs otthonod. <gray>(/sethome)"
+  home-limit: "<red>Legfeljebb <max> otthonod lehet. Töröld az egyiket: /delhome"
+  home-list: "<gold>Otthonaid <gray>(max <max>): <white><homes>"
+  home-invalid-name: "<red>A név csak betű, szám, - és _ lehet (max 16)."
+  back-none: "<red>Nincs hova visszamenned."
+  tp-warmup: "<yellow>Teleport <seconds> mp múlva, ne mozogj!"
+  tp-cancelled-move: "<red>Teleport megszakítva, mozogtál."
+  tp-cancelled-damage: "<red>Teleport megszakítva, sérülés ért."
+  tp-cooldown: "<red>Várj még <seconds> mp-et."
+  tp-done: "<green>Megérkeztél."
+  tpa-usage: "<yellow>/tpa <játékos>"
+  tpa-self: "<red>Magadhoz nem teleportálhatsz."
+  tpa-sent: "<green>Teleport kérés elküldve: <white><player>"
+  tpa-received: "<gold><player> hozzád szeretne teleportálni. <click:run_command:/tpaccept><green><bold>[ELFOGAD]</bold></click> <click:run_command:/tpdeny><red><bold>[ELUTASÍT]</bold></click>"
+  tpa-none: "<red>Nincs függő teleport kérésed."
+  tpa-expired: "<red>A kérés lejárt."
+  tpa-offline: "<red>A kérő játékos már nincs fent."
+  tpa-accepted: "<green>Elfogadtad <white><player> <green>kérését."
+  tpa-accepted-by: "<green><player> elfogadta a kérésed."
+  tpa-denied: "<yellow>Elutasítottad <white><player> <yellow>kérését."
+  tpa-denied-by: "<red><player> elutasította a kérésed."
+  tpa-cancelled: "<green>Kérés visszavonva."
+  warp-set: "<green>Warp létrehozva: <white><name>"
+  warp-deleted: "<green>Warp törölve: <white><name>"
+  warp-none: "<red>Nincs ilyen warp: <white><name>"
+  warp-empty: "<red>Még nincs warp."
+  warp-list: "<gold>Warpok: <white><warps>"
+  warp-usage: "<yellow>/setwarp <név> (betű, szám, - és _)"
+  # --- Területvédelem ---
+  claim-disabled: "<red>A területvédelem ki van kapcsolva."
+  claim-usage: "<yellow>/claim | trust <játékos> | untrust <játékos> | info | list | show  <gray>és /unclaim"
+  claim-world: "<red>Ebben a világban nem védhetsz területet."
+  claim-yours: "<yellow>Ez a chunk már a tiéd."
+  claim-taken: "<red>Ezt a chunkot már <white><owner> <red>védi."
+  claim-near-spawn: "<red>A spawn közelében nem védhetsz területet."
+  claim-limit: "<red>Legfeljebb <max> chunkot védhetsz."
+  claim-done: "<green>Chunk védve <gray>(<x>, <z>) <green>- ár: <white><price>"
+  claim-removed: "<green>Chunk felszabadítva. Visszatérítés: <white><refund>"
+  claim-not-claimed: "<red>Ez a chunk nincs lefoglalva."
+  claim-trusted: "<green><player> mostantól építhet a területeiden."
+  claim-untrusted: "<green><player> jogait visszavontad."
+  claim-info: "<gold>Tulajdonos: <white><owner> <gray>| Megbízottak: <white><trusted>"
+  claim-list: "<gold>Védett chunkjaid: <white><count>/<max> <gray>- <places>"
+  claim-denied: "<red>Ez <owner> védett területe."
+  claim-enter: "<green>Belépsz: <white><owner> <green>területére"
+  claim-wild: "<gray>Elhagytad a védett területet."
+  # --- Alvás ---
+  sleep-progress: "<yellow><player> lefeküdt <gray>(<asleep>/<needed> alszik)"
+  sleep-skipped: "<green>Elég játékos alszik, jó reggelt!"
 
 crates:
   common:
@@ -499,3 +563,46 @@ weekly:
       - {money: 5000, key: rare}
       - {money: 3000, key: common}
       - {money: 1500}
+
+chat:
+  enabled: true
+  format: "<prefix> <name-color><player> <dark_gray>» <text-color><message>"
+
+ranks:
+  default: "<gray>Játékos"
+  admin-fallback: admin
+  list:
+    owner: {prefix: "<dark_red><bold>OWNER", name: "<red>", text: "<white>"}
+    admin: {prefix: "<red><bold>ADMIN", name: "<red>", text: "<white>"}
+    mod: {prefix: "<blue><bold>MOD", name: "<blue>", text: "<white>"}
+    vip: {prefix: "<gold><bold>VIP", name: "<gold>", text: "<white>"}
+    tag: {prefix: "<green>Tag", name: "<green>", text: "<white>"}
+
+tab:
+  enabled: true
+  header:
+    - ""
+    - "<gradient:#ffd700:#ff8c00><bold>✦ PENTHOUSE SMP ✦"
+    - "<gray>Online: <white><online><dark_gray>/<white><max>"
+    - ""
+  footer:
+    - ""
+    - "<gray>Ping: <green><ping> ms <dark_gray>| <gray>TPS: <green><tps> <dark_gray>| <gray>Pénz: <yellow><money>"
+    - ""
+
+teleport:
+  warmup-seconds: 3
+  cooldown-seconds: 5
+  request-expire-seconds: 60
+  max-homes: 3
+
+claims:
+  enabled: true
+  price: 2000
+  max-per-player: 9
+  refund-percent: 50
+  worlds: [world]
+
+sleep:
+  enabled: true
+  percent: 50

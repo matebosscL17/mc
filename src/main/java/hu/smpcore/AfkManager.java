@@ -87,9 +87,11 @@ public final class AfkManager implements Listener, CommandExecutor {
         if (!changed) {
             return;
         }
-        player.playerListName(value
-                ? plugin.msg("afk-tab", Placeholder.unparsed("player", player.getName()))
-                : null);
+        if (value) {
+            player.playerListName(plugin.msg("afk-tab", Placeholder.unparsed("player", player.getName())));
+        } else {
+            plugin.ranks().refreshTab(player);
+        }
         if (plugin.getConfig().getBoolean("afk.broadcast", true)) {
             Bukkit.broadcast(plugin.msg(value ? "afk-now" : "afk-back",
                     Placeholder.unparsed("player", player.getName())));
