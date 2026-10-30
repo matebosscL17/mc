@@ -59,6 +59,16 @@ commands:
   rtp:
     description: Véletlen teleport a vadonba
     aliases: [wild]
+  crate:
+    description: Ládák (nyitás kulccsal), admin beállítás
+    aliases: [crates]
+    usage: /crate list | buy <id> | set <id> | remove | givekey <játékos> <id> [db]
+  bind:
+    description: Blokk vagy NPC parancshoz kötése (admin)
+    usage: /bind <parancs> | remove | list | npc <név> <parancs>
+  holo:
+    description: Toplista hologramok (admin)
+    usage: /holo create <playtime|kills|deaths|balance> | remove | list
 permissions:
   smpcore.admin:
     description: /smpcore reload, /eco, védett sírok megnyitása

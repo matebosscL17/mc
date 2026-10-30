@@ -411,3 +411,72 @@ messages:
   rtp-cooldown: "<red>Még <seconds> másodpercet várnod kell."
   rtp-done: "<green>Megérkeztél: <white><x>, <z>"
   rtp-failed: "<red>Nem találtam biztonságos helyet, próbáld újra."
+  # --- Ládák ---
+  crate-key-lore: "<!italic><gray>Kulcs ehhez: <crate>"
+  crate-unknown: "<red>Ismeretlen láda: <white><crate>"
+  crate-busy: "<red>Már nyitsz egy ládát!"
+  crate-no-key: "<red>Ehhez a ládához kulcs kell! <gray>(/crate buy)"
+  crate-won: "<green>Nyertél: <reward>"
+  crate-broadcast: "<gold>★ <white><player> <gray>a(z) <crate> <gray>ládából nyert: <reward>"
+  crate-chance: "<!italic><gray>Esély: <white><chance>%"
+  crate-protected: "<red>Ezt a ládát nem törheted le."
+  crate-usage: "<yellow>/crate list | buy <id> | set <id> | remove | givekey <játékos> <id> [db]"
+  crate-list-header: "<gold><bold>Ládák"
+  crate-list-line: "<gray>- <white><id> <gray>(<crate><gray>) ár: <white><price>"
+  crate-not-for-sale: "<red>Ez a kulcs nem vásárolható."
+  crate-bought: "<green>Megvetted: <crate> <green>kulcs <gray>(<price>)"
+  crate-set: "<green>A láda beállítva: <crate>"
+  crate-removed: "<green>A láda eltávolítva."
+  crate-key-received: "<green>Kaptál <white><amount>x <crate> <green>kulcsot."
+  crate-key-given: "<green>Kulcs átadva."
+  crate-holo: "<gray>Jobb klikk: nyitás <newline><gray>Bal klikk: nyeremények"
+  look-at-block: "<red>Nézz egy blokkra (vagy NPC-re)!"
+  # --- Bind / hologram ---
+  bind-usage: "<yellow>/bind <parancs> | remove | list | npc <név_alulvonással> <parancs>"
+  bind-set: "<green>Rákötve: <white>/<command>"
+  bind-removed: "<green>Bind törölve."
+  bind-protected: "<red>Ehhez a blokkhoz parancs van kötve, előbb /bind remove."
+  bind-list-header: "<gold><bold>Bindok"
+  bind-list-line: "<gray>- <white><where> <gray>-> <white>/<command>"
+  bind-npc: "<green>NPC létrehozva: <white>/<command>"
+  holo-usage: "<yellow>/holo create <playtime|kills|deaths|balance> | remove | list"
+  holo-created: "<green>Hologram létrehozva."
+  holo-removed: "<green>Hologram törölve."
+  holo-none-near: "<red>Nincs hologram a közeledben."
+  holo-list-line: "<gray>- <white><type> <gray>(<id>)"
+  holo-title-playtime: "<gold><bold>⌚ Legtöbb játékidő"
+  holo-title-kills: "<red><bold>⚔ Legtöbb ölés"
+  holo-title-deaths: "<gray><bold>☠ Legtöbb halál"
+  holo-title-balance: "<green><bold>$ Leggazdagabbak"
+
+crates:
+  common:
+    name: "<gray><bold>Közönséges láda"
+    price: 500
+    key-name: "<!italic><gray>Közönséges kulcs"
+    key-material: TRIPWIRE_HOOK
+    rewards:
+      - {weight: 40, icon: IRON_INGOT, name: "<white>16 vas", item: "IRON_INGOT:16"}
+      - {weight: 30, icon: BREAD, name: "<white>16 kenyér", item: "BREAD:16"}
+      - {weight: 20, icon: GOLD_INGOT, name: "<yellow>8 arany", item: "GOLD_INGOT:8"}
+      - {weight: 10, icon: SUNFLOWER, name: "<gold>$500", money: 500}
+  rare:
+    name: "<aqua><bold>Ritka láda"
+    price: 2000
+    key-name: "<!italic><aqua>Ritka kulcs"
+    key-material: TRIPWIRE_HOOK
+    rewards:
+      - {weight: 35, icon: DIAMOND, name: "<aqua>4 gyémánt", item: "DIAMOND:4"}
+      - {weight: 30, icon: GOLDEN_APPLE, name: "<yellow>4 aranyalma", item: "GOLDEN_APPLE:4"}
+      - {weight: 25, icon: SUNFLOWER, name: "<gold>$3000", money: 3000}
+      - {weight: 10, icon: NETHERITE_INGOT, name: "<dark_purple>Netherite ingot", item: "NETHERITE_INGOT:1", broadcast: true}
+  legendary:
+    name: "<gold><bold>Legendás láda"
+    price: 0
+    key-name: "<!italic><gold>Legendás kulcs"
+    key-material: NETHER_STAR
+    rewards:
+      - {weight: 40, icon: NETHERITE_INGOT, name: "<dark_purple>3 netherite", item: "NETHERITE_INGOT:3"}
+      - {weight: 30, icon: ENCHANTED_GOLDEN_APPLE, name: "<gold>2 isteni alma", item: "ENCHANTED_GOLDEN_APPLE:2", broadcast: true}
+      - {weight: 20, icon: SUNFLOWER, name: "<gold>$20000", money: 20000, broadcast: true}
+      - {weight: 10, icon: BEACON, name: "<aqua>Beacon", item: "BEACON:1", broadcast: true}

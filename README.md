@@ -42,3 +42,12 @@ Az **Aternos nem engedi** saját plugin jar feltöltését, ott az SMPCore nem f
 
 ## Saját fordítás
 JDK 25 + Maven, majd `mvn package` -> `target/SMPCore.jar`. A GitHub Actions is lefordítja minden feltöltéskor.
+
+## Láda, bind és hologram (spawn térképhez)
+
+- `/crate set <id>` – nézz egy blokkra (pl. láda): láda lesz belőle. Jobb klikk + kulcs = nyitás animációval, bal klikk = nyeremények. Ládák és nyeremények: `crates:` a config.yml-ben.
+- `/crate givekey <játékos> <id> [db]`, `/crate buy <id>`, `/crate list`, `/crate remove`
+- `/bind <parancs>` – blokkra/NPC-re nézve jobb klikkre lefut a parancs (pl. `/bind shop`, `/bind ah`, `/bind daily`). `/bind npc <Név_így> <parancs>` villager NPC-t hoz létre. `/bind remove`, `/bind list`
+- `/holo create <playtime|kills|deaths|balance>` – toplista hologram (percenként frissül), `/holo remove`, `/holo list`
+
+Térkép importálása: tedd a világ mappát `world` néven a szerver mappába (vagy WorldEdit schematic), majd `/lobby set` a térkép spawnjánál, és állítsd a `spawn-protection.radius`-t.

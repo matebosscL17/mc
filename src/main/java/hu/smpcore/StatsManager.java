@@ -76,6 +76,10 @@ public final class StatsManager implements Listener, CommandExecutor {
         return data.computeIfAbsent(id, k -> new long[3]);
     }
 
+    public java.util.Set<UUID> players() {
+        return new java.util.HashSet<>(data.keySet());
+    }
+
     public long kills(UUID id) {
         return stats(id)[KILLS];
     }

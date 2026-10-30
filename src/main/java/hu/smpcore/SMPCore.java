@@ -49,6 +49,9 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
     private AfkManager afk;
     private BackupManager backup;
     private LobbyManager lobby;
+    private CrateManager crates;
+    private BindManager binds;
+    private HologramManager holos;
 
     @Override
     public void onEnable() {
@@ -69,6 +72,9 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         afk = new AfkManager(this);
         backup = new BackupManager(this);
         lobby = new LobbyManager(this);
+        crates = new CrateManager(this);
+        binds = new BindManager(this);
+        holos = new HologramManager(this, stats);
 
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(this, this);
@@ -82,6 +88,8 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         pm.registerEvents(spawn, this);
         pm.registerEvents(afk, this);
         pm.registerEvents(lobby, this);
+        pm.registerEvents(crates, this);
+        pm.registerEvents(binds, this);
 
         for (String name : List.of("rules", "discord", "death", "smpcore")) {
             bind(name, this);
@@ -103,9 +111,13 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         bind("backup", backup);
         bind("lobby", lobby);
         bind("rtp", lobby);
+        bind("crate", crates);
+        bind("bind", binds);
+        bind("holo", holos);
         sidebar.start();
         afk.start();
         backup.start();
+        holos.start();
 
         // 5 percenként mentés
         getServer().getScheduler().runTaskTimer(this, this::saveAll, 6000L, 6000L);
@@ -114,6 +126,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
 
     @Override
     public void onDisable() {
+        holos.stop();
         backup.stop();
         afk.stop();
         saveAll();
