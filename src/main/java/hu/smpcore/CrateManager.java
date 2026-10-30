@@ -227,6 +227,18 @@ public final class CrateManager implements Listener, CommandExecutor {
         }
     }
 
+    /** Kulcs átadása (pl. heti jutalomként). */
+    public void giveKey(Player player, String id, int amount) {
+        if (crateSection(id) == null) {
+            plugin.getLogger().warning("Ismeretlen láda a jutalomban: " + id);
+            return;
+        }
+        giveItem(player, keyItem(id, amount));
+        plugin.send(player, "crate-key-received",
+                Placeholder.unparsed("amount", String.valueOf(amount)),
+                Placeholder.parsed("crate", crateName(id)));
+    }
+
     // ---------- Nyitás ----------
 
     @EventHandler

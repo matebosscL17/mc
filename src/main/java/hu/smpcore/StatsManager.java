@@ -172,7 +172,7 @@ public final class StatsManager implements Listener, CommandExecutor {
             return true;
         }
         if (sender instanceof Player player) {
-            plugin.tops().open(player, type);
+            plugin.tops().open(player, type, args.length > 1 && args[1].toLowerCase().startsWith("h"));
             return true;
         }
 

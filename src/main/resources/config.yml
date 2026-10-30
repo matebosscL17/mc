@@ -448,6 +448,8 @@ messages:
   holo-title-kills: "<red><bold>⚔ Legtöbb ölés"
   holo-title-deaths: "<gray><bold>☠ Legtöbb halál"
   holo-title-balance: "<green><bold>$ Leggazdagabbak"
+  weekly-winner: "<gold>★ Heti <type> toplista <gray>#<place>: <white><player> <gray>→ <green><reward>"
+  weekly-header: "<gold><bold>Heti jutalmak"
 
 crates:
   common:
@@ -480,3 +482,20 @@ crates:
       - {weight: 30, icon: ENCHANTED_GOLDEN_APPLE, name: "<gold>2 isteni alma", item: "ENCHANTED_GOLDEN_APPLE:2", broadcast: true}
       - {weight: 20, icon: SUNFLOWER, name: "<gold>$20000", money: 20000, broadcast: true}
       - {weight: 10, icon: BEACON, name: "<aqua>Beacon", item: "BEACON:1", broadcast: true}
+
+weekly:
+  enabled: true
+  days: 7
+  rewards:
+    playtime:
+      - {money: 5000, key: rare}
+      - {money: 3000, key: common}
+      - {money: 1500}
+    kills:
+      - {money: 5000, key: rare}
+      - {money: 3000, key: common}
+      - {money: 1500}
+    balance:
+      - {money: 5000, key: rare}
+      - {money: 3000, key: common}
+      - {money: 1500}

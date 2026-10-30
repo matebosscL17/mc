@@ -53,6 +53,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
     private BindManager binds;
     private HologramManager holos;
     private TopManager tops;
+    private WeeklyManager weekly;
 
     @Override
     public void onEnable() {
@@ -76,6 +77,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         crates = new CrateManager(this);
         binds = new BindManager(this);
         holos = new HologramManager(this, stats);
+        weekly = new WeeklyManager(this, stats);
         tops = new TopManager(this, stats);
 
         PluginManager pm = getServer().getPluginManager();
@@ -93,6 +95,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         pm.registerEvents(crates, this);
         pm.registerEvents(binds, this);
         pm.registerEvents(tops, this);
+        pm.registerEvents(weekly, this);
 
         for (String name : List.of("rules", "discord", "death", "smpcore")) {
             bind(name, this);
@@ -122,6 +125,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         backup.start();
         holos.start();
         crates.start();
+        weekly.start();
 
         // 5 percenként mentés
         getServer().getScheduler().runTaskTimer(this, this::saveAll, 6000L, 6000L);
@@ -132,6 +136,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
     public void onDisable() {
         holos.stop();
         crates.stop();
+        weekly.stop();
         backup.stop();
         afk.stop();
         saveAll();
@@ -153,6 +158,14 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
     }
 
     // ---------- Közös segédfüggvények (a többi osztály is használja) ----------
+
+    public WeeklyManager weekly() {
+        return weekly;
+    }
+
+    public CrateManager crates() {
+        return crates;
+    }
 
     public TopManager tops() {
         return tops;
