@@ -4,10 +4,10 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -19,17 +19,28 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
-/** /shop (GUI) és /sell [all] */
+/** /shop (főmenü kategóriákkal, lapozható oldalak) és /sell [all] */
 public final class ShopManager implements Listener, CommandExecutor {
+
+    private static final int PAGE_SIZE = 45;
+    private static final int[] MENU_SLOTS = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25};
+
+    private record Category(String key, Material icon, String name, Map<Material, long[]> items) {
+    }
 
     private static final class ShopHolder implements InventoryHolder {
         private Inventory inventory;
+        /** null = főmenü */
+        private String category;
+        private int page;
+        private final Map<Integer, String> menuSlots = new HashMap<>();
 
         @Override
         public Inventory getInventory() {
@@ -38,7 +49,8 @@ public final class ShopManager implements Listener, CommandExecutor {
     }
 
     private final SMPCore plugin;
-    /** anyag -> {vételár, eladási ár} */
+    private final Map<String, Category> categories = new LinkedHashMap<>();
+    /** anyag -> {vételár, eladási ár} (minden kategória együtt, /sell-hez) */
     private final Map<Material, long[]> prices = new LinkedHashMap<>();
 
     public ShopManager(SMPCore plugin) {
@@ -47,20 +59,38 @@ public final class ShopManager implements Listener, CommandExecutor {
     }
 
     public void reload() {
+        categories.clear();
         prices.clear();
-        ConfigurationSection section = plugin.getConfig().getConfigurationSection("shop.items");
-        if (section == null) {
+        ConfigurationSection cats = plugin.getConfig().getConfigurationSection("shop.categories");
+        if (cats == null) {
             return;
         }
-        for (String key : section.getKeys(false)) {
-            Material material = Material.matchMaterial(key);
-            if (material == null || !material.isItem()) {
-                plugin.getLogger().warning("Ismeretlen shop tárgy a configban: " + key);
+        for (String key : cats.getKeys(false)) {
+            ConfigurationSection section = cats.getConfigurationSection(key);
+            if (section == null) {
                 continue;
             }
-            prices.put(material, new long[]{
-                    section.getLong(key + ".buy", 0),
-                    section.getLong(key + ".sell", 0)});
+            Material icon = Material.matchMaterial(section.getString("icon", "CHEST"));
+            if (icon == null) {
+                icon = Material.CHEST;
+            }
+            Map<Material, long[]> items = new LinkedHashMap<>();
+            ConfigurationSection itemSection = section.getConfigurationSection("items");
+            if (itemSection != null) {
+                for (String itemKey : itemSection.getKeys(false)) {
+                    Material material = Material.matchMaterial(itemKey);
+                    if (material == null || !material.isItem()) {
+                        plugin.getLogger().warning("Ismeretlen shop tárgy a configban: " + itemKey);
+                        continue;
+                    }
+                    long[] price = {
+                            itemSection.getLong(itemKey + ".buy", 0),
+                            itemSection.getLong(itemKey + ".sell", 0)};
+                    items.put(material, price);
+                    prices.put(material, price);
+                }
+            }
+            categories.put(key, new Category(key, icon, section.getString("name", key), items));
         }
     }
 
@@ -77,7 +107,7 @@ public final class ShopManager implements Listener, CommandExecutor {
             return true;
         }
         if (command.getName().equalsIgnoreCase("shop")) {
-            open(player);
+            openMenu(player);
             return true;
         }
         // /sell [all]
@@ -89,16 +119,55 @@ public final class ShopManager implements Listener, CommandExecutor {
         return true;
     }
 
-    private void open(Player player) {
+    // ---------- GUI ----------
+
+    private void openMenu(Player player) {
         ShopHolder holder = new ShopHolder();
-        Inventory inv = Bukkit.createInventory(holder, 54, plugin.parse(plugin.cfg("shop.title")));
+        Inventory inv = Bukkit.createInventory(holder, 36, plugin.parse(plugin.cfg("shop.title")));
         holder.inventory = inv;
 
-        int slot = 0;
-        for (Map.Entry<Material, long[]> entry : prices.entrySet()) {
-            if (slot >= 45) {
-                break; // egy oldal: max 45 tárgy
+        int i = 0;
+        for (Category category : categories.values()) {
+            if (i >= MENU_SLOTS.length) {
+                break;
             }
+            ItemStack icon = new ItemStack(category.icon());
+            ItemMeta meta = icon.getItemMeta();
+            meta.displayName(plugin.parse(category.name()));
+            meta.lore(List.of(plugin.msg("shop-category-lore",
+                    Placeholder.unparsed("count", String.valueOf(category.items().size())))));
+            icon.setItemMeta(meta);
+            inv.setItem(MENU_SLOTS[i], icon);
+            holder.menuSlots.put(MENU_SLOTS[i], category.key());
+            i++;
+        }
+        player.openInventory(inv);
+    }
+
+    private void openCategory(Player player, String key, int page) {
+        Category category = categories.get(key);
+        if (category == null) {
+            openMenu(player);
+            return;
+        }
+        List<Map.Entry<Material, long[]>> entries = new ArrayList<>(category.items().entrySet());
+        int pages = Math.max(1, (entries.size() + PAGE_SIZE - 1) / PAGE_SIZE);
+        int current = Math.max(0, Math.min(page, pages - 1));
+
+        ShopHolder holder = new ShopHolder();
+        holder.category = key;
+        holder.page = current;
+        Component title = plugin.parse(plugin.cfg("shop.title") + " <dark_gray>» <reset>" + category.name()
+                + " <gray>(" + (current + 1) + "/" + pages + ")");
+        Inventory inv = Bukkit.createInventory(holder, 54, title);
+        holder.inventory = inv;
+
+        for (int i = 0; i < PAGE_SIZE; i++) {
+            int index = current * PAGE_SIZE + i;
+            if (index >= entries.size()) {
+                break;
+            }
+            Map.Entry<Material, long[]> entry = entries.get(index);
             long buy = entry.getValue()[0];
             long sell = entry.getValue()[1];
             ItemStack item = new ItemStack(entry.getKey());
@@ -112,16 +181,34 @@ public final class ShopManager implements Listener, CommandExecutor {
             }
             meta.lore(lore);
             item.setItemMeta(meta);
-            inv.setItem(slot++, item);
+            inv.setItem(i, item);
+        }
+
+        if (current > 0) {
+            inv.setItem(45, nav(Material.ARROW, "shop-prev"));
+        }
+        inv.setItem(49, nav(Material.BARRIER, "shop-back"));
+        if (current < pages - 1) {
+            inv.setItem(53, nav(Material.ARROW, "shop-next"));
         }
         player.openInventory(inv);
     }
 
-    // ---------- GUI események ----------
+    private ItemStack nav(Material material, String messageKey) {
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(plugin.msg(messageKey));
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private void later(Runnable runnable) {
+        plugin.getServer().getScheduler().runTask(plugin, runnable);
+    }
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
-        if (!(event.getView().getTopInventory().getHolder() instanceof ShopHolder)) {
+        if (!(event.getView().getTopInventory().getHolder() instanceof ShopHolder holder)) {
             return;
         }
         event.setCancelled(true);
@@ -132,6 +219,34 @@ public final class ShopManager implements Listener, CommandExecutor {
                 || event.getClickedInventory() != event.getView().getTopInventory()) {
             return;
         }
+        int slot = event.getSlot();
+
+        // Főmenü
+        if (holder.category == null) {
+            String key = holder.menuSlots.get(slot);
+            if (key != null) {
+                later(() -> openCategory(player, key, 0));
+            }
+            return;
+        }
+
+        // Kategória oldal: navigáció
+        if (slot == 45 && holder.page > 0) {
+            later(() -> openCategory(player, holder.category, holder.page - 1));
+            return;
+        }
+        if (slot == 49) {
+            later(() -> openMenu(player));
+            return;
+        }
+        if (slot == 53) {
+            later(() -> openCategory(player, holder.category, holder.page + 1));
+            return;
+        }
+        if (slot < 0 || slot >= PAGE_SIZE) {
+            return;
+        }
+
         ItemStack clicked = event.getCurrentItem();
         if (clicked == null) {
             return;

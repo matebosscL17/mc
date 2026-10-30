@@ -43,6 +43,11 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
     private DailyManager daily;
     private StatsManager stats;
     private SidebarManager sidebar;
+    private JobsManager jobs;
+    private AuctionManager auctions;
+    private SpawnManager spawn;
+    private AfkManager afk;
+    private BackupManager backup;
 
     @Override
     public void onEnable() {
@@ -55,6 +60,11 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         daily = new DailyManager(this);
         stats = new StatsManager(this);
         sidebar = new SidebarManager(this, stats);
+        jobs = new JobsManager(this);
+        auctions = new AuctionManager(this);
+        spawn = new SpawnManager(this);
+        afk = new AfkManager(this);
+        backup = new BackupManager(this);
 
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(this, this);
@@ -63,6 +73,10 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         pm.registerEvents(bounties, this);
         pm.registerEvents(stats, this);
         pm.registerEvents(sidebar, this);
+        pm.registerEvents(jobs, this);
+        pm.registerEvents(auctions, this);
+        pm.registerEvents(spawn, this);
+        pm.registerEvents(afk, this);
 
         for (String name : List.of("rules", "discord", "death", "smpcore")) {
             bind(name, this);
@@ -78,7 +92,13 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         bind("top", stats);
         bind("graves", graves);
         bind("sidebar", sidebar);
+        bind("jobs", jobs);
+        bind("ah", auctions);
+        bind("afk", afk);
+        bind("backup", backup);
         sidebar.start();
+        afk.start();
+        backup.start();
 
         // 5 percenként mentés
         getServer().getScheduler().runTaskTimer(this, this::saveAll, 6000L, 6000L);
@@ -87,12 +107,15 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
 
     @Override
     public void onDisable() {
+        backup.stop();
+        afk.stop();
         saveAll();
     }
 
     private void saveAll() {
         economy.save();
         stats.save();
+        jobs.save();
     }
 
     private void bind(String name, CommandExecutor executor) {
@@ -258,6 +281,8 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
                     reloadConfig();
                     shop.reload();
                     sidebar.reload();
+                    jobs.reload();
+                    backup.start();
                     send(sender, "reloaded");
                 } else {
                     send(sender, "usage-smpcore");

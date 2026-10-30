@@ -2,7 +2,7 @@ name: SMPCore
 version: '1.1.0'
 main: hu.smpcore.SMPCore
 api-version: '1.21'
-description: SMP csomag - sírkő, gazdaság, shop, fejpénz, napi jutalom, toplisták
+description: SMP csomag - sírkő, gazdaság, shop, aukciósház, foglalkozások, fejpénz, napi jutalom, toplisták, AFK, mentés
 commands:
   rules:
     description: Szerver szabályok
@@ -42,6 +42,16 @@ commands:
   top:
     description: Toplisták
     usage: /top [playtime|kills|deaths|balance]
+  jobs:
+    description: Foglalkozásaid szintje
+  ah:
+    description: Aukciósház
+    aliases: [auction, auctionhouse]
+    usage: /ah | /ah sell [ár] | /ah my
+  afk:
+    description: AFK mód ki/be
+  backup:
+    description: Világ mentése most (admin)
 permissions:
   smpcore.admin:
     description: /smpcore reload, /eco, védett sírok megnyitása

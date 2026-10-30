@@ -8,6 +8,12 @@ Paper 26.x plugin SMP szerverhez (Java 25). A kliens és a szerver Minecraft ver
 - **Shop:** `/shop` (GUI, bal klikk = vétel, jobb klikk = eladás, shift = 16 db), `/sell` (kézben lévő), `/sell all`
 - **Fejpénz:** `/bounty [játékos] [összeg]`, `/bounty list`; aki megöli a játékost, megkapja
 - **Napi jutalom:** `/daily`, egymás utáni napokra nő
+- **Foglalkozások:** bányász, farmer, vadász. Ércekért, érett terményért és mobölésért pénz jár, szintenként nő. `/jobs` mutatja a szinteket.
+- **Aukciósház:** `/ah` (lapozható GUI, kattintásra vétel), `/ah sell [ár]` (kézben lévő tárgy), `/ah my` (saját hirdetések, visszavonás). Eladáskor 5% adó.
+- **Shop kategóriákkal:** `/shop` főmenü, minden kategória lapozható.
+- **Kezdőcsomag** első belépéskor, **védett spawn** (építés és PvP tiltva, admin kivétel).
+- **AFK:** 5 perc tétlenség után AFK jelzés a tablistán, `/afk` kézzel is.
+- **Automatikus mentés:** 2 óránként zip a szerver `backups` mappájába (10 darabot tart meg), `/backup` azonnal.
 - **Sidebar scoreboard:** oldalt a szerver neve, pénz, ölés/halál, játszott idő, online létszám. `/sidebar` kapcsolja ki-be. A szerver nevét a config `sidebar.title` sorában írd át.
 - **Toplisták:** `/top [playtime|kills|deaths|balance]`
 - Halál koordináták + `/death`, PvP fejek, belépő/kilépő üzenetek, üdvözlő title, `/rules`, `/discord`
