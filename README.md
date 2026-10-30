@@ -11,6 +11,7 @@ Paper 26.x plugin SMP szerverhez (Java 25). A kliens és a szerver Minecraft ver
 - **Foglalkozások:** bányász, farmer, vadász. Ércekért, érett terményért és mobölésért pénz jár, szintenként nő. `/jobs` mutatja a szinteket.
 - **Aukciósház:** `/ah` (lapozható GUI, kattintásra vétel), `/ah sell [ár]` (kézben lévő tárgy), `/ah my` (saját hirdetések, visszavonás). Eladáskor 5% adó.
 - **Shop kategóriákkal:** `/shop` főmenü, minden kategória lapozható.
+- **Lobby:** `/lobby build` egy Penthouse stílusú lebegő platformot épít (sakktábla padló, szökőkút, üvegkorlát, arany oszlopok), ez lesz a spawn. `/lobby` bárkit visszavisz, `/lobby set` saját építésű helyet állít be. Az arany nyomólapról véletlen teleporttal indulnak a vadonba (`/rtp` parancsként is megy, `/wild`).
 - **Kezdőcsomag** első belépéskor, **védett spawn** (építés és PvP tiltva, admin kivétel).
 - **AFK:** 5 perc tétlenség után AFK jelzés a tablistán, `/afk` kézzel is.
 - **Automatikus mentés:** 2 óránként zip a szerver `backups` mappájába (10 darabot tart meg), `/backup` azonnal.

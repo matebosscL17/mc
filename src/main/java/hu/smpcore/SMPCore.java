@@ -48,6 +48,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
     private SpawnManager spawn;
     private AfkManager afk;
     private BackupManager backup;
+    private LobbyManager lobby;
 
     @Override
     public void onEnable() {
@@ -67,6 +68,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         spawn = new SpawnManager(this);
         afk = new AfkManager(this);
         backup = new BackupManager(this);
+        lobby = new LobbyManager(this);
 
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(this, this);
@@ -79,6 +81,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         pm.registerEvents(auctions, this);
         pm.registerEvents(spawn, this);
         pm.registerEvents(afk, this);
+        pm.registerEvents(lobby, this);
 
         for (String name : List.of("rules", "discord", "death", "smpcore")) {
             bind(name, this);
@@ -98,6 +101,8 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         bind("ah", auctions);
         bind("afk", afk);
         bind("backup", backup);
+        bind("lobby", lobby);
+        bind("rtp", lobby);
         sidebar.start();
         afk.start();
         backup.start();

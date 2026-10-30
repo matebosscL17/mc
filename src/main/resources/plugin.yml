@@ -52,6 +52,13 @@ commands:
     description: AFK mód ki/be
   backup:
     description: Világ mentése most (admin)
+  lobby:
+    description: Lobby (spawn). Adminoknak /lobby set és /lobby build
+    aliases: [hub]
+    usage: /lobby | /lobby set | /lobby build
+  rtp:
+    description: Véletlen teleport a vadonba
+    aliases: [wild]
 permissions:
   smpcore.admin:
     description: /smpcore reload, /eco, védett sírok megnyitása

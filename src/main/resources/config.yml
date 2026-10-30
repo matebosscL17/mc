@@ -228,12 +228,29 @@ starter-kit:
     - "BREAD:16"
     - "TORCH:32"
 
-# Védett spawn: az alapvilág spawn pontja körül nem lehet építeni és (alapból) PvP-zni.
+# Védett spawn: a világ spawn pontja (a lobby) körül nem lehet építeni és (alapból) PvP-zni.
+# radius = vízszintes sugár, vertical = ennyi blokkal fölötte/alatta védett (0 = függőlegesen mindenhol).
 # Az smpcore.admin joggal (op) rendelkezők kivételek.
 spawn-protection:
   enabled: true
-  radius: 24
+  radius: 30
+  vertical: 40
   pvp: false
+
+# Lobby: /lobby build egy Penthouse stílusú lebegő platformot épít oda, ahol állsz, és ez lesz a spawn.
+# Használat: repülj (creative) a kívánt magasságba, pl. /tp @s 0 200 0, majd /lobby build
+lobby:
+  platform-radius: 24
+  # true = minden belépéskor a lobbyba kerül a játékos, false = csak az első belépéskor és haláláskor
+  teleport-on-join: false
+
+# Véletlen teleport (/rtp és az arany nyomólap a lobbyban)
+rtp:
+  enabled: true
+  pad-enabled: true
+  min-radius: 300
+  max-radius: 3000
+  cooldown-seconds: 30
 
 # AFK: tétlen játékos AFK jelzést kap a tablistán.
 afk:
@@ -379,3 +396,18 @@ messages:
   backup-running: "<red>Már fut egy mentés."
   backup-done: "<green>Mentés kész: <white><file>"
   backup-failed: "<red>A mentés nem sikerült, nézd meg a szerver konzolt."
+
+  # Lobby, véletlen teleport
+  lobby-usage: "<gray>Használat: /lobby, /lobby set, /lobby build"
+  lobby-tp: "<green>A lobbyban vagy."
+  lobby-set: "<green>Ez lett a lobby és a világ spawn pontja."
+  lobby-building: "<red>Már épül a lobby, várd meg."
+  lobby-wrong-world: "<red>A lobbyt csak az alapvilágban (overworld) lehet megépíteni."
+  lobby-height: "<red>Itt nincs elég hely fölfelé/lefelé. Menj kb. 100-200-as magasságba."
+  lobby-build-start: "<yellow>A lobby építése elindult, pár másodperc."
+  lobby-build-done: "<green>Kész a lobby! Ez lett a világ spawn pontja."
+  rtp-disabled: "<red>A véletlen teleport ki van kapcsolva."
+  rtp-searching: "<yellow>Biztonságos hely keresése..."
+  rtp-cooldown: "<red>Még <seconds> másodpercet várnod kell."
+  rtp-done: "<green>Megérkeztél: <white><x>, <z>"
+  rtp-failed: "<red>Nem találtam biztonságos helyet, próbáld újra."

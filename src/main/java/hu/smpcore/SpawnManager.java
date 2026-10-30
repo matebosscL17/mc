@@ -68,6 +68,10 @@ public final class SpawnManager implements Listener {
         }
         Location spawn = main.getSpawnLocation();
         double radius = plugin.getConfig().getDouble("spawn-protection.radius", 24);
+        double vertical = plugin.getConfig().getDouble("spawn-protection.vertical", 40);
+        if (vertical > 0 && Math.abs(loc.getY() - spawn.getY()) > vertical) {
+            return false;
+        }
         double dx = loc.getX() - spawn.getX();
         double dz = loc.getZ() - spawn.getZ();
         return dx * dx + dz * dz <= radius * radius;
