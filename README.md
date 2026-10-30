@@ -1,6 +1,6 @@
 # SMPCore 1.1
 
-Paper 1.21.x plugin SMP szerverhez (Java 21).
+Paper 26.x plugin SMP szerverhez (Java 25). A kliens és a szerver Minecraft verziója egyezzen (pl. mindkettő 26.3).
 
 ## Funkciók
 - **Sírkő:** halálkor a cuccaid (és az XP) egy játékos-fej blokkba kerülnek a halál helyén. Jobb klikk = kinyitás. Az első 5 percben csak a tulajdonos nyithatja. `/graves` listázza a sírjaidat.
@@ -21,12 +21,17 @@ Minden szöveg, ár és funkció a `plugins/SMPCore/config.yml`-ben állítható
   `disabled-commands: [balance, bal, money, pay, eco, baltop, balancetop, sell, worth]`
 - Az adatok a `plugins/SMPCore/` mappában vannak (balances.yml, graves.yml, bounties.yml, daily.yml, stats.yml). Ezeket ne töröld, ha meg akarod tartani a pénzt és a sírokat.
 
-## Lefordítás (nem kell semmit telepíteni)
-1. Csinálj egy GitHub repót, és töltsd fel ennek a mappának a tartalmát.
-2. Az **Actions** fülön futtasd a **Build** workflow-t (az első feltöltésnél magától elindul).
-3. A lefutott workflow aljáról töltsd le az **SMPCore** artifactot, csomagold ki: benne van az `SMPCore.jar`.
+## Letöltés
+A kész jar mindig itt van (minden feltöltés után magától frissül):
+https://github.com/matebosscL17/mc/releases/download/latest/SMPCore.jar
 
-Saját gépen: JDK 21 + Maven, majd `mvn package` -> `target/SMPCore.jar`.
+## Szerver
+1. Java 25 (Temurin JDK 25 az adoptium.net oldalról), ellenőrzés: `java -version`
+2. Paper 26.3: https://papermc.io/downloads/paper
+3. Az `SMPCore.jar`-t told a szerver `plugins` mappájába, majd indítsd újra a szervert.
+4. A `plugins/SMPCore/config.yml`-ben írd át a szerver nevét (`sidebar.title`) és a Discord linket.
 
-## Aternos
-Files fül -> `plugins` mappa -> feltöltöd az `SMPCore.jar`-t -> szerver újraindítás. A Discord linket a `config.yml`-ben írd át.
+Az **Aternos nem engedi** saját plugin jar feltöltését, ott az SMPCore nem fut.
+
+## Saját fordítás
+JDK 25 + Maven, majd `mvn package` -> `target/SMPCore.jar`. A GitHub Actions is lefordítja minden feltöltéskor.
