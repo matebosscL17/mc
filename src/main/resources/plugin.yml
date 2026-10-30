@@ -121,6 +121,10 @@ commands:
     usage: /claim | trust [játékos] | untrust [játékos] | info | list | show
   unclaim:
     description: Chunk felszabadítása (részleges visszatérítés)
+  spawnzone:
+    description: A védett spawn terület kijelölése (admin)
+    aliases: [szone]
+    usage: /spawnzone pos1 | pos2 | clear | info | show
 permissions:
   smpcore.admin:
     description: /smpcore reload, /eco, védett sírok megnyitása

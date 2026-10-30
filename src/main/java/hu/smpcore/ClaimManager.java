@@ -460,16 +460,11 @@ public final class ClaimManager implements Listener, TabExecutor {
                     Placeholder.unparsed("owner", plugin.name(existing)));
             return;
         }
-        World main = Bukkit.getWorlds().get(0);
-        if (player.getWorld().equals(main)) {
-            Location spawn = main.getSpawnLocation();
-            double radius = plugin.getConfig().getDouble("spawn-protection.radius", 30) + 16;
-            double dx = player.getLocation().getX() - spawn.getX();
-            double dz = player.getLocation().getZ() - spawn.getZ();
-            if (dx * dx + dz * dz <= radius * radius) {
-                plugin.send(player, "claim-near-spawn");
-                return;
-            }
+        if (plugin.spawn().isProtected(player.getLocation())
+                || plugin.spawn().isProtected(player.getLocation().add(16, 0, 16))
+                || plugin.spawn().isProtected(player.getLocation().add(-16, 0, -16))) {
+            plugin.send(player, "claim-near-spawn");
+            return;
         }
         boolean admin = player.hasPermission("smpcore.admin");
         int max = plugin.getConfig().getInt("claims.max-per-player", 9);

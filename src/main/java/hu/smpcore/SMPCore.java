@@ -142,6 +142,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
             bind(name, teleports);
         }
         bind("claim", claims);
+        bind("spawnzone", spawn);
         bind("unclaim", claims);
         sidebar.start();
         afk.start();
@@ -191,6 +192,10 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
     }
 
     // ---------- Közös segédfüggvények (a többi osztály is használja) ----------
+
+    public SpawnManager spawn() {
+        return spawn;
+    }
 
     public AfkManager afk() {
         return afk;

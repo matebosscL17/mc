@@ -237,6 +237,7 @@ spawn-protection:
   vertical: 120   # fent-lent ennyi blokkig
   pvp: false      # true = a spawnon is lehet PvP
   damage: false   # true = a spawnon is sebződhetnek (esés, mob, tűz stb.)
+  whole-world: false  # true = a fő világ MINDEN pontja védett (ha az SMP másik világban van)
 
 # Lobby: /lobby build egy Penthouse stílusú lebegő platformot épít oda, ahol állsz, és ez lesz a spawn.
 # Használat: repülj (creative) a kívánt magasságba, pl. /tp @s 0 200 0, majd /lobby build
@@ -515,6 +516,12 @@ messages:
   # --- Alvás ---
   sleep-progress: "<yellow><player> lefeküdt <gray>(<asleep>/<needed> alszik)"
   sleep-skipped: "<green>Elég játékos alszik, jó reggelt!"
+  zone-usage: "<yellow>/spawnzone pos1 | pos2 | clear | info | show"
+  zone-pos: "<green><pos> beállítva: <white><x>, <z>"
+  zone-set: "<green>Védett spawn terület beállítva: <white><size> <gray>(a teljes magasságban)"
+  zone-cleared: "<yellow>A kijelölt terület törölve, újra a sugár számít."
+  zone-radius: "<gray>Nincs kijelölt terület, a spawn körüli sugár védett: <white><radius> blokk"
+  zone-info: "<gold>Védett terület: <white><x1>, <z1> <gray>→ <white><x2>, <z2>"
 
 crates:
   common:
