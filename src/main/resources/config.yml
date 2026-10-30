@@ -250,8 +250,8 @@ lobby:
 rtp:
   enabled: true
   pad-enabled: true
-  min-radius: 300
-  max-radius: 3000
+  min-radius: 1100   # a lobby és a bejárt térkép körül kívül, a friss vadonba
+  max-radius: 5000
   cooldown-seconds: 30
 
 # AFK: tétlen játékos AFK jelzést kap a tablistán.
@@ -615,3 +615,6 @@ claims:
 sleep:
   enabled: true
   percent: 50
+
+setup:
+  world-border: 12000   # a világ átmérője blokkban (0 = nincs határ)

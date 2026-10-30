@@ -147,6 +147,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         sidebar.start();
         afk.start();
         backup.start();
+        applyWorldSetup();
         holos.start();
         crates.start();
         weekly.start();
@@ -169,6 +170,16 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         backup.stop();
         afk.stop();
         saveAll();
+    }
+
+    /** SMP világbeállítások: világhatár (átmérő blokkban) a fő világban. */
+    private void applyWorldSetup() {
+        double border = getConfig().getDouble("setup.world-border", 0);
+        if (border > 0) {
+            var wb = getServer().getWorlds().get(0).getWorldBorder();
+            wb.setCenter(0, 0);
+            wb.setSize(border);
+        }
     }
 
     private void saveAll() {
