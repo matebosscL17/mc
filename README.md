@@ -51,3 +51,15 @@ JDK 25 + Maven, majd `mvn package` -> `target/SMPCore.jar`. A GitHub Actions is 
 - `/holo create <playtime|kills|deaths|balance>` – toplista hologram (percenként frissül), `/holo remove`, `/holo list`
 
 Térkép importálása: tedd a világ mappát `world` néven a szerver mappába (vagy WorldEdit schematic), majd `/lobby set` a térkép spawnjánál, és állítsd a `spawn-protection.radius`-t.
+
+## Játékmenet-csomag (rangok, home/tpa/warp, területvédelem)
+
+- **Rangok és chat:** `/rank set <játékos> <rang>`, `/rank remove`, `/rank list`. A rangok a `ranks.list` alatt szerkeszthetők. A prefix a chatben és a tablistán is látszik. Admin rang nélkül automatikusan az `admin-fallback` rangot kapja. `/msg`, `/reply` privát üzenethez.
+- **Tablista:** fejléc és lábléc (online, ping, TPS, pénz), a `tab:` részben szerkeszthető.
+- **Otthonok:** `/sethome [név]`, `/home [név]`, `/delhome`, `/homes` (alapból 3 db, `teleport.max-homes`). `/back` a legutóbbi hely vagy halál helyére.
+- **Teleport kérés:** `/tpa <játékos>`, `/tpaccept`, `/tpdeny`, `/tpcancel`. Teleport előtt 3 mp várakozás (mozgásra vagy sérülésre megszakad), 5 mp újratöltés. Adminra nem vonatkozik.
+- **Warpok:** `/warp <név>`, `/warps`, admin: `/setwarp`, `/delwarp`.
+- **Területvédelem (chunk):** `/claim` megvédi az aktuális chunkot (alapból 2000 $, max 9). `/unclaim` felszabadítja (50% vissza). `/claim trust|untrust <játékos>`, `/claim info|list|show`. Védi az építést, ládákat, ajtókat, állatokat, tábla/képkereteket, robbanást, tüzet, folyadékot és dugattyút. Adminra nem vonatkozik. A spawn közelében nem engedi a védést.
+- **Alvás-szavazás:** ha a játékosok 50%-a alszik (AFK-k nélkül), átugrik az éjszaka (`sleep.percent`).
+
+**EssentialsX mellett** ezek a parancsok ütköznek (`/home`, `/sethome`, `/tpa`, `/warp`, `/back`, `/msg`...). Vagy ne használd az EssentialsX-et, vagy tiltsd le ezeket a `config.yml`-ben a `disabled-commands` alatt.
