@@ -233,9 +233,10 @@ starter-kit:
 # Az smpcore.admin joggal (op) rendelkezők kivételek.
 spawn-protection:
   enabled: true
-  radius: 30
-  vertical: 40
-  pvp: false
+  radius: 80      # a spawn pontjától ennyi blokkra védett (az egész lobby)
+  vertical: 120   # fent-lent ennyi blokkig
+  pvp: false      # true = a spawnon is lehet PvP
+  damage: false   # true = a spawnon is sebződhetnek (esés, mob, tűz stb.)
 
 # Lobby: /lobby build egy Penthouse stílusú lebegő platformot épít oda, ahol állsz, és ez lesz a spawn.
 # Használat: repülj (creative) a kívánt magasságba, pl. /tp @s 0 200 0, majd /lobby build

@@ -7,6 +7,18 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
+import org.bukkit.entity.Enderman;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBurnEvent;
+import org.bukkit.event.block.BlockIgniteEvent;
+import org.bukkit.event.entity.EntityChangeBlockEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.hanging.HangingBreakByEntityEvent;
+import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
+import org.bukkit.event.player.PlayerBucketFillEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -109,9 +121,97 @@ public final class SpawnManager implements Listener {
         if (damager instanceof Projectile projectile && projectile.getShooter() instanceof Player shooter) {
             damager = shooter;
         }
-        if (damager instanceof Player attacker && inZone(victim.getLocation())) {
+        if (damager instanceof Player attacker && (inZone(victim.getLocation()) || inZone(attacker.getLocation()))) {
             event.setCancelled(true);
             attacker.sendActionBar(plugin.msg("spawn-no-pvp"));
+        }
+    }
+
+    /** A spawn területén senki nem sebződik (a világ alá esést és a /kill-t kivéve). */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onDamage(EntityDamageEvent event) {
+        if (plugin.getConfig().getBoolean("spawn-protection.damage", false)
+                || !(event.getEntity() instanceof Player player) || !inZone(player.getLocation())) {
+            return;
+        }
+        switch (event.getCause()) {
+            case VOID, KILL, SUICIDE, WORLD_BORDER -> { }
+            default -> event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onHunger(FoodLevelChangeEvent event) {
+        if (event.getEntity() instanceof Player player && inZone(player.getLocation())
+                && event.getFoodLevel() < player.getFoodLevel()) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBucketEmpty(PlayerBucketEmptyEvent event) {
+        if (inZone(event.getBlock().getLocation()) && !bypass(event.getPlayer())) {
+            event.setCancelled(true);
+            event.getPlayer().sendActionBar(plugin.msg("spawn-protected"));
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBucketFill(PlayerBucketFillEvent event) {
+        if (inZone(event.getBlock().getLocation()) && !bypass(event.getPlayer())) {
+            event.setCancelled(true);
+            event.getPlayer().sendActionBar(plugin.msg("spawn-protected"));
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onHanging(HangingBreakByEntityEvent event) {
+        Entity remover = event.getRemover();
+        if (remover instanceof Projectile projectile && projectile.getShooter() instanceof Entity shooter) {
+            remover = shooter;
+        }
+        if (inZone(event.getEntity().getLocation())
+                && !(remover instanceof Player player && bypass(player))) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onArmorStand(PlayerArmorStandManipulateEvent event) {
+        if (inZone(event.getRightClicked().getLocation()) && !bypass(event.getPlayer())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onTrample(PlayerInteractEvent event) {
+        if (event.getAction() == Action.PHYSICAL && event.getClickedBlock() != null
+                && event.getClickedBlock().getType() == Material.FARMLAND
+                && inZone(event.getClickedBlock().getLocation())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBurn(BlockBurnEvent event) {
+        if (inZone(event.getBlock().getLocation())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onIgnite(BlockIgniteEvent event) {
+        if (inZone(event.getBlock().getLocation())
+                && (event.getPlayer() == null || !bypass(event.getPlayer()))) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onMobGrief(EntityChangeBlockEvent event) {
+        if (!(event.getEntity() instanceof Player) && inZone(event.getBlock().getLocation())
+                && !(event.getEntity() instanceof org.bukkit.entity.FallingBlock)) {
+            event.setCancelled(true);
         }
     }
 
