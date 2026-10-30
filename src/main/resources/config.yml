@@ -516,10 +516,11 @@ messages:
   # --- Alvás ---
   sleep-progress: "<yellow><player> lefeküdt <gray>(<asleep>/<needed> alszik)"
   sleep-skipped: "<green>Elég játékos alszik, jó reggelt!"
-  zone-usage: "<yellow>/spawnzone pos1 | pos2 | clear | info | show"
+  zone-usage: "<yellow>/spawnzone pos1 | pos2 | set <x1> <z1> <x2> <z2> | undo | clear | info | show"
+  zone-undone: "<yellow>Az utolsó terület törölve."
   zone-pos: "<green><pos> beállítva: <white><x>, <z>"
-  zone-set: "<green>Védett spawn terület beállítva: <white><size> <gray>(a teljes magasságban)"
-  zone-cleared: "<yellow>A kijelölt terület törölve, újra a sugár számít."
+  zone-set: "<green>Védett terület hozzáadva: <white><size> <gray>(a teljes magasságban)"
+  zone-cleared: "<yellow>Az összes kijelölt terület törölve, újra a sugár számít."
   zone-radius: "<gray>Nincs kijelölt terület, a spawn körüli sugár védett: <white><radius> blokk"
   zone-info: "<gold>Védett terület: <white><x1>, <z1> <gray>→ <white><x2>, <z2>"
 

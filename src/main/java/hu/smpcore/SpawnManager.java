@@ -42,8 +42,8 @@ public final class SpawnManager implements Listener, CommandExecutor {
 
     private final SMPCore plugin;
     private final File zoneFile;
-    /** kijelölt védett téglalap (a fő világban), vagy null, ha nincs: ekkor a sugár számít */
-    private int[] region; // minX, maxX, minZ, maxZ
+    /** kijelölt védett téglalapok a fő világban (minX, maxX, minZ, maxZ); ha üres, a sugár számít */
+    private final java.util.List<int[]> regions = new java.util.ArrayList<>();
     private final java.util.Map<java.util.UUID, int[]> selection = new java.util.HashMap<>();
 
     public SpawnManager(SMPCore plugin) {
@@ -51,27 +51,36 @@ public final class SpawnManager implements Listener, CommandExecutor {
         this.zoneFile = new File(plugin.getDataFolder(), "spawnzone.yml");
         if (zoneFile.exists()) {
             YamlConfiguration yaml = YamlConfiguration.loadConfiguration(zoneFile);
-            if (yaml.contains("min-x")) {
-                region = new int[]{yaml.getInt("min-x"), yaml.getInt("max-x"),
-                        yaml.getInt("min-z"), yaml.getInt("max-z")};
+            for (String line : yaml.getStringList("regions")) {
+                try {
+                    String[] p = line.split(",");
+                    regions.add(new int[]{Integer.parseInt(p[0].trim()), Integer.parseInt(p[1].trim()),
+                            Integer.parseInt(p[2].trim()), Integer.parseInt(p[3].trim())});
+                } catch (RuntimeException ex) {
+                    plugin.getLogger().warning("Hibás sor a spawnzone.yml-ben: " + line);
+                }
             }
         }
     }
 
-    private void saveRegion() {
+    private void saveRegions() {
         YamlConfiguration yaml = new YamlConfiguration();
-        if (region != null) {
-            yaml.set("min-x", region[0]);
-            yaml.set("max-x", region[1]);
-            yaml.set("min-z", region[2]);
-            yaml.set("max-z", region[3]);
+        java.util.List<String> lines = new java.util.ArrayList<>();
+        for (int[] r : regions) {
+            lines.add(r[0] + "," + r[1] + "," + r[2] + "," + r[3]);
         }
+        yaml.set("regions", lines);
         try {
             plugin.getDataFolder().mkdirs();
             yaml.save(zoneFile);
         } catch (IOException ex) {
             plugin.getLogger().severe("Nem sikerült menteni a spawnzone.yml-t: " + ex.getMessage());
         }
+    }
+
+    private void addRegion(int x1, int z1, int x2, int z2) {
+        regions.add(new int[]{Math.min(x1, x2), Math.max(x1, x2), Math.min(z1, z2), Math.max(z1, z2)});
+        saveRegions();
     }
 
     /** Védett terület-e ez a hely (kívülről is hívható). */
@@ -122,10 +131,15 @@ public final class SpawnManager implements Listener, CommandExecutor {
         if (plugin.getConfig().getBoolean("spawn-protection.whole-world", false)) {
             return true;
         }
-        if (region != null) {
+        if (!regions.isEmpty()) {
             int x = loc.getBlockX();
             int z = loc.getBlockZ();
-            return x >= region[0] && x <= region[1] && z >= region[2] && z <= region[3];
+            for (int[] r : regions) {
+                if (x >= r[0] && x <= r[1] && z >= r[2] && z <= r[3]) {
+                    return true;
+                }
+            }
+            return false;
         }
         Location spawn = main.getSpawnLocation();
         double radius = plugin.getConfig().getDouble("spawn-protection.radius", 24);
@@ -162,29 +176,53 @@ public final class SpawnManager implements Listener, CommandExecutor {
                         Placeholder.unparsed("x", String.valueOf(sel[i])),
                         Placeholder.unparsed("z", String.valueOf(sel[i + 1])));
                 if (sel[4] == 3) {
-                    region = new int[]{Math.min(sel[0], sel[2]), Math.max(sel[0], sel[2]),
-                            Math.min(sel[1], sel[3]), Math.max(sel[1], sel[3])};
-                    saveRegion();
+                    addRegion(sel[0], sel[1], sel[2], sel[3]);
+                    selection.remove(player.getUniqueId());
                     plugin.send(player, "zone-set", Placeholder.unparsed("size",
-                            (region[1] - region[0] + 1) + " x " + (region[3] - region[2] + 1)));
+                            (Math.abs(sel[0] - sel[2]) + 1) + " x " + (Math.abs(sel[1] - sel[3]) + 1)));
                 }
             }
+            case "set", "add" -> {
+                if (args.length < 5) {
+                    plugin.send(player, "zone-usage");
+                    return true;
+                }
+                try {
+                    int x1 = Integer.parseInt(args[1]);
+                    int z1 = Integer.parseInt(args[2]);
+                    int x2 = Integer.parseInt(args[3]);
+                    int z2 = Integer.parseInt(args[4]);
+                    addRegion(x1, z1, x2, z2);
+                    plugin.send(player, "zone-set", Placeholder.unparsed("size",
+                            (Math.abs(x1 - x2) + 1) + " x " + (Math.abs(z1 - z2) + 1)));
+                } catch (NumberFormatException ex) {
+                    plugin.send(player, "zone-usage");
+                }
+            }
+            case "undo" -> {
+                if (!regions.isEmpty()) {
+                    regions.remove(regions.size() - 1);
+                    saveRegions();
+                }
+                plugin.send(player, "zone-undone");
+            }
             case "clear" -> {
-                region = null;
+                regions.clear();
                 selection.remove(player.getUniqueId());
-                saveRegion();
+                saveRegions();
                 plugin.send(player, "zone-cleared");
             }
             case "show" -> show(player);
             case "info" -> {
-                if (region == null) {
+                if (regions.isEmpty()) {
                     plugin.send(player, "zone-radius", Placeholder.unparsed("radius",
                             String.valueOf(plugin.getConfig().getDouble("spawn-protection.radius", 24))));
-                } else {
-                    plugin.send(player, "zone-info", Placeholder.unparsed("x1", String.valueOf(region[0])),
-                            Placeholder.unparsed("z1", String.valueOf(region[2])),
-                            Placeholder.unparsed("x2", String.valueOf(region[1])),
-                            Placeholder.unparsed("z2", String.valueOf(region[3])));
+                }
+                for (int[] r : regions) {
+                    plugin.send(player, "zone-info", Placeholder.unparsed("x1", String.valueOf(r[0])),
+                            Placeholder.unparsed("z1", String.valueOf(r[2])),
+                            Placeholder.unparsed("x2", String.valueOf(r[1])),
+                            Placeholder.unparsed("z2", String.valueOf(r[3])));
                 }
             }
             default -> plugin.send(player, "zone-usage");
@@ -194,25 +232,28 @@ public final class SpawnManager implements Listener, CommandExecutor {
 
     /** A védett terület szélét mutatja részecskékkel (csak a közeli szakaszt, pár másodpercig). */
     private void show(Player player) {
-        int[] r = region;
-        World world = player.getWorld();
+        java.util.List<int[]> rs = new java.util.ArrayList<>(regions);
         double radius = plugin.getConfig().getDouble("spawn-protection.radius", 24);
         Location spawn = Bukkit.getWorlds().get(0).getSpawnLocation();
         final int[] ticks = {0};
         plugin.getServer().getScheduler().runTaskTimer(plugin, task -> {
-            if (!player.isOnline() || ticks[0]++ >= 12) {
+            if (!player.isOnline() || ticks[0]++ >= 16) {
                 task.cancel();
                 return;
             }
             double y = player.getLocation().getY() + 1;
             double px = player.getLocation().getX();
             double pz = player.getLocation().getZ();
-            if (r != null) {
-                for (int i = -40; i <= 40; i += 3) {
-                    for (double[] p : new double[][]{{px + i, r[2]}, {px + i, r[3] + 1}, {r[0], pz + i}, {r[1] + 1, pz + i}}) {
-                        boolean inside = p[0] >= r[0] - 1 && p[0] <= r[1] + 2 && p[1] >= r[2] - 1 && p[1] <= r[3] + 2;
-                        if (inside && Math.abs(p[0] - px) <= 40 && Math.abs(p[1] - pz) <= 40) {
-                            player.spawnParticle(Particle.END_ROD, p[0], y, p[1], 1, 0, 0, 0, 0);
+            if (!rs.isEmpty()) {
+                for (int[] r : rs) {
+                    for (int i = -48; i <= 48; i += 3) {
+                        double[][] pts = {{Math.floor(px) + i, r[2]}, {Math.floor(px) + i, r[3] + 1},
+                                {r[0], Math.floor(pz) + i}, {r[1] + 1, Math.floor(pz) + i}};
+                        for (double[] p : pts) {
+                            boolean onEdge = p[0] >= r[0] && p[0] <= r[1] + 1 && p[1] >= r[2] && p[1] <= r[3] + 1;
+                            if (onEdge) {
+                                player.spawnParticle(Particle.END_ROD, p[0], y, p[1], 1, 0, 0, 0, 0);
+                            }
                         }
                     }
                 }
@@ -221,7 +262,7 @@ public final class SpawnManager implements Listener, CommandExecutor {
                     double rad = Math.toRadians(a);
                     double x = spawn.getX() + Math.cos(rad) * radius;
                     double z = spawn.getZ() + Math.sin(rad) * radius;
-                    if (Math.abs(x - px) <= 40 && Math.abs(z - pz) <= 40) {
+                    if (Math.abs(x - px) <= 48 && Math.abs(z - pz) <= 48) {
                         player.spawnParticle(Particle.END_ROD, x, y, z, 1, 0, 0, 0, 0);
                     }
                 }
