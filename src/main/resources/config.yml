@@ -1,0 +1,163 @@
+# SMPCore beállítások
+# Szövegekben MiniMessage formázás használható: <red>, <gold>, <bold>, <gradient:red:blue> ...
+# Placeholderek a szövegektől függően: <player>, <x>, <y>, <z>, <world>, <amount> stb.
+# Módosítás után: /smpcore reload
+
+join-quit:
+  enabled: true
+  join: "<green>+ <white><player> <gray>csatlakozott"
+  first-join: "<gold>★ <white><player> <gold>először csatlakozott a szerverre! Üdv!"
+  quit: "<red>- <white><player> <gray>kilépett"
+
+welcome-title:
+  enabled: true
+  title: "<gradient:gold:yellow><bold>Üdv, <player>!"
+  subtitle: "<gray>Érezd jól magad a szerveren"
+
+death-coords:
+  enabled: true
+  message: "<red>Meghaltál itt: <white><x>, <y>, <z> <gray>(<world>) <dark_gray>- /death"
+  command-none: "<gray>Még nem haltál meg a legutóbbi újraindítás óta."
+
+player-heads:
+  # PvP-s gyilkosságnál a halott játékos feje eldobódik
+  enabled: true
+  # 1.0 = mindig, 0.5 = 50%
+  chance: 1.0
+  name: "<!italic><yellow><player> feje"
+
+graves:
+  # Halálkor a tárgyak egy játékos-fej blokkba kerülnek a halál helyén (jobb klikk = kinyitás)
+  enabled: true
+  # Ennyi percig csak a tulajdonos nyithatja ki
+  protected-minutes: 5
+  # A tapasztalati pont is a sírba kerül
+  keep-exp: true
+
+economy:
+  currency: "$"
+  start-balance: 100
+
+bounty:
+  # Minimum fejpénz összeg
+  min: 100
+
+daily:
+  timezone: "Europe/Budapest"
+  base: 100
+  # Minden egymás utáni nap után ennyivel több
+  bonus-per-day: 20
+  # Ennyi napig nő a bónusz
+  max-streak-days: 7
+
+# Shop: legfeljebb 45 tárgy fér el az egy oldalas menüben.
+# buy = ennyiért vehető meg (0 = nem vehető), sell = ennyiért adható el (0 = nem adható el).
+# Tipp: az eladási ár legyen mindig kisebb, mint a vételár.
+shop:
+  title: "<gold><bold>Shop"
+  items:
+    COBBLESTONE: { buy: 4, sell: 1 }
+    STONE: { buy: 6, sell: 1 }
+    OAK_LOG: { buy: 8, sell: 2 }
+    SAND: { buy: 4, sell: 1 }
+    GLASS: { buy: 8, sell: 2 }
+    TORCH: { buy: 4, sell: 1 }
+    COAL: { buy: 20, sell: 8 }
+    COPPER_INGOT: { buy: 15, sell: 5 }
+    IRON_INGOT: { buy: 50, sell: 20 }
+    GOLD_INGOT: { buy: 80, sell: 32 }
+    REDSTONE: { buy: 12, sell: 4 }
+    LAPIS_LAZULI: { buy: 15, sell: 5 }
+    DIAMOND: { buy: 400, sell: 150 }
+    EMERALD: { buy: 150, sell: 60 }
+    OBSIDIAN: { buy: 60, sell: 20 }
+    BREAD: { buy: 12, sell: 4 }
+    COOKED_BEEF: { buy: 15, sell: 5 }
+    GOLDEN_APPLE: { buy: 250, sell: 80 }
+    ARROW: { buy: 3, sell: 1 }
+    ENDER_PEARL: { buy: 120, sell: 40 }
+    EXPERIENCE_BOTTLE: { buy: 40, sell: 10 }
+    WHEAT: { buy: 0, sell: 3 }
+    CARROT: { buy: 0, sell: 3 }
+    POTATO: { buy: 0, sell: 3 }
+    SUGAR_CANE: { buy: 0, sell: 2 }
+    PUMPKIN: { buy: 0, sell: 3 }
+    BONE: { buy: 0, sell: 2 }
+    STRING: { buy: 0, sell: 2 }
+    GUNPOWDER: { buy: 0, sell: 6 }
+    SLIME_BALL: { buy: 0, sell: 8 }
+    BLAZE_ROD: { buy: 0, sell: 25 }
+
+rules:
+  lines:
+    - "<gold><bold>Szerver szabályok"
+    - "<yellow>1. <white>Tilos a griefelés és a lopás."
+    - "<yellow>2. <white>Tilos a csalás és a tiltott modok."
+    - "<yellow>3. <white>Tiszteld a többi játékost."
+    - "<yellow>4. <white>Ne spamelj a chaten."
+
+discord:
+  message: "<aqua>Discord: <click:open_url:'https://discord.gg/IDE_IRD_A_LINKET'><underlined>discord.gg/IDE_IRD_A_LINKET</underlined></click>"
+
+# Üzenetek. A hiányzó kulcsok helyén "[hiányzó üzenet: ...]" jelenik meg.
+messages:
+  player-only: "<red>Ezt a parancsot csak játékos használhatja."
+  no-permission: "<red>Ehhez nincs jogosultságod."
+  reloaded: "<green>SMPCore konfig újratöltve."
+  usage-smpcore: "<gray>Használat: /smpcore reload"
+  player-not-found: "<red>Nincs ilyen játékos: <player>"
+  invalid-amount: "<red>Érvénytelen összeg."
+  not-enough-money: "<red>Nincs elég pénzed. <gray>(Kell: <amount>)"
+
+  # Gazdaság
+  balance-self: "<gray>Egyenleged: <gold><amount>"
+  balance-other: "<gray><player> egyenlege: <gold><amount>"
+  pay-usage: "<gray>Használat: /pay [játékos] [összeg]"
+  pay-self: "<red>Magadnak nem küldhetsz pénzt."
+  pay-sent: "<green>Elküldtél <gold><amount> <green>pénzt neki: <white><player>"
+  pay-received: "<green>Kaptál <gold><amount> <green>pénzt tőle: <white><player>"
+  baltop-header: "<gold><bold>Leggazdagabbak"
+  top-line: "<yellow><rank>. <white><player> <gray>- <white><value>"
+  eco-usage: "<gray>Használat: /eco [give|take|set] [játékos] [összeg]"
+  eco-done: "<green>Kész. <white><player> egyenlege: <gold><amount>"
+
+  # Shop
+  shop-lore-buy: "<!italic><green>Vétel: <white><price> <dark_gray>(bal klikk: 1, shift: 16)"
+  shop-lore-sell: "<!italic><red>Eladás: <white><price> <dark_gray>(jobb klikk: 1, shift: 16)"
+  shop-cannot-buy: "<red>Ezt nem lehet megvenni."
+  shop-not-sellable: "<red>Ezt nem lehet eladni (vagy elnevezett/enchantolt tárgy)."
+  shop-inv-full: "<red>Tele a táskád, a ki nem fért tárgyak árát visszakaptad."
+  shop-bought: "<green>Vettél <white><count>x <item> <green>tárgyat: <gold><price>"
+  shop-sold: "<green>Eladtál <white><count>x <item> <green>tárgyat: <gold><price>"
+  shop-sold-all: "<green>Eladtál <white><count> <green>tárgyat összesen: <gold><price>"
+  shop-nothing: "<red>Nincs nálad eladható tárgy."
+
+  # Sírkő
+  grave-created: "<gray>Sírod: <white><x>, <y>, <z> <gray>(<world>) <dark_gray>- jobb klikk a fejre. Mások <minutes> perc múlva nyithatják."
+  grave-break: "<red>A sírt nem lehet kitörni, kattints rá jobb gombbal."
+  grave-protected: "<red>Ez a sír még védett, még kb. <minutes> percig csak a tulajdonosa nyithatja."
+  grave-claimed: "<green>Kinyitottad a sírt, megkaptad a cuccaidat."
+  graves-header: "<gold>Sírjaid:"
+  graves-line: "<gray>- <white><x>, <y>, <z> <gray>(<world>)"
+  graves-none: "<gray>Nincs sírod."
+
+  # Fejpénz
+  bounty-usage: "<gray>Használat: /bounty [játékos] [összeg] vagy /bounty list"
+  bounty-self: "<red>Magadra nem tűzhetsz ki fejpénzt."
+  bounty-min: "<red>A minimum összeg: <amount>"
+  bounty-placed: "<red>☠ <white><setter> <gray>fejpénzt tűzött ki <white><player> <gray>fejére: <gold><amount> <gray>(összesen: <gold><total><gray>)"
+  bounty-claimed: "<gold>☠ <white><killer> <gray>megölte <white><victim> <gray>játékost, és megkapta a fejpénzt: <gold><amount>"
+  bounty-list-header: "<gold><bold>Fejpénzek"
+  bounty-none: "<gray>Nincs aktív fejpénz."
+
+  # Napi jutalom
+  daily-reward: "<green>Napi jutalom: <gold><amount> <gray>(széria: <white><streak> <gray>nap)"
+  daily-already: "<red>Ma már felvetted. <gray>Következő: <white><time> <gray>múlva."
+  daily-hint: "<yellow>Felveheted a napi jutalmadat: <white>/daily"
+
+  # Toplisták
+  top-usage: "<gray>Használat: /top [playtime|kills|deaths|balance]"
+  top-title-playtime: "<gold><bold>Top játszott idő"
+  top-title-kills: "<gold><bold>Top gyilkosok"
+  top-title-deaths: "<gold><bold>Legtöbbet haltak"
+  top-title-balance: "<gold><bold>Leggazdagabbak"

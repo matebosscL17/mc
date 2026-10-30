@@ -1,0 +1,46 @@
+name: SMPCore
+version: '1.1.0'
+main: hu.smpcore.SMPCore
+api-version: '1.21'
+description: SMP csomag - sírkő, gazdaság, shop, fejpénz, napi jutalom, toplisták
+commands:
+  rules:
+    description: Szerver szabályok
+  discord:
+    description: Discord meghívó
+  death:
+    description: Utolsó halálod helye
+  smpcore:
+    description: SMPCore admin parancsok (/smpcore reload)
+  balance:
+    description: Egyenleg
+    aliases: [bal, money]
+    usage: /balance [játékos]
+  pay:
+    description: Pénz küldése
+    usage: /pay [játékos] [összeg]
+  baltop:
+    description: Leggazdagabbak
+    aliases: [balancetop]
+  eco:
+    description: Admin gazdaság parancs
+    usage: /eco [give|take|set] [játékos] [összeg]
+  shop:
+    description: Shop megnyitása
+  sell:
+    description: Eladás (kézben lévő tárgy, vagy /sell all)
+    usage: /sell [all]
+  graves:
+    description: Sírjaid listája
+  bounty:
+    description: Fejpénz kitűzése
+    usage: /bounty [játékos] [összeg] | /bounty list
+  daily:
+    description: Napi jutalom
+  top:
+    description: Toplisták
+    usage: /top [playtime|kills|deaths|balance]
+permissions:
+  smpcore.admin:
+    description: /smpcore reload, /eco, védett sírok megnyitása
+    default: op
