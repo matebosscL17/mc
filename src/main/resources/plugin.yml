@@ -62,7 +62,7 @@ commands:
   crate:
     description: Ládák (nyitás kulccsal), admin beállítás
     aliases: [crates]
-    usage: /crate list | buy <id> | set <id> | remove | givekey <játékos> <id> [db]
+    usage: /crate list | buy <id> | set <id> | place <id> | remove | givekey <játékos> <id> [db]
   bind:
     description: Blokk vagy NPC parancshoz kötése (admin)
     usage: /bind <parancs> | remove | list | npc <név> <parancs>

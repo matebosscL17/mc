@@ -69,6 +69,8 @@ public final class CrateManager implements Listener, CommandExecutor {
 
     private static final class UiHolder implements InventoryHolder {
         private Inventory inventory;
+        private String buyCrate;
+        private int buySlot = -1;
 
         @Override
         public Inventory getInventory() {
@@ -511,14 +513,39 @@ public final class CrateManager implements Listener, CommandExecutor {
             inv.setItem(row * 9 + 1 + index % 7, item);
             index++;
         }
+        long price = crateSection(id).getLong("price", 0);
+        int buySlot = size - 5;
+        if (price > 0) {
+            holder.buyCrate = id;
+            holder.buySlot = buySlot;
+            ItemStack buy = new ItemStack(Material.GOLD_INGOT);
+            ItemMeta buyMeta = buy.getItemMeta();
+            buyMeta.displayName(plugin.msg("crate-gui-buy"));
+            buyMeta.lore(List.of(
+                    plugin.msg("crate-gui-price", Placeholder.unparsed("price", plugin.money(price))),
+                    plugin.msg("crate-gui-click")));
+            buyMeta.setEnchantmentGlintOverride(true);
+            buy.setItemMeta(buyMeta);
+            inv.setItem(buySlot, buy);
+        } else {
+            ItemStack no = new ItemStack(Material.BARRIER);
+            ItemMeta noMeta = no.getItemMeta();
+            noMeta.displayName(plugin.msg("crate-gui-nobuy"));
+            no.setItemMeta(noMeta);
+            inv.setItem(buySlot, no);
+        }
         player.openInventory(inv);
         player.playSound(player.getLocation(), Sound.BLOCK_CHEST_OPEN, 0.6f, 1.2f);
     }
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
-        if (event.getView().getTopInventory().getHolder() instanceof UiHolder) {
+        if (event.getView().getTopInventory().getHolder() instanceof UiHolder holder) {
             event.setCancelled(true);
+            if (holder.buyCrate != null && event.getClickedInventory() == event.getView().getTopInventory()
+                    && event.getSlot() == holder.buySlot && event.getWhoClicked() instanceof Player player) {
+                purchase(player, holder.buyCrate);
+            }
         }
     }
 
@@ -561,6 +588,7 @@ public final class CrateManager implements Listener, CommandExecutor {
             case "list" -> list(sender);
             case "buy" -> buy(sender, args);
             case "set" -> set(sender, args);
+            case "place" -> place(sender, args);
             case "remove" -> remove(sender);
             case "givekey", "give" -> givekey(sender, args);
             default -> plugin.send(sender, "crate-usage");
@@ -600,19 +628,54 @@ public final class CrateManager implements Listener, CommandExecutor {
             plugin.send(player, "crate-usage");
             return;
         }
-        String id = args[1];
+        purchase(player, args[1]);
+    }
+
+    private void purchase(Player player, String id) {
         long price = crateSection(id).getLong("price", 0);
         if (price <= 0) {
             plugin.send(player, "crate-not-for-sale");
             return;
         }
         if (!plugin.economy().withdraw(player.getUniqueId(), price)) {
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 0.8f, 1f);
             plugin.send(player, "not-enough-money", Placeholder.unparsed("amount", plugin.money(price)));
             return;
         }
         giveItem(player, keyItem(id, 1));
+        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, 1.2f);
         plugin.send(player, "crate-bought", Placeholder.parsed("crate", crateName(id)),
                 Placeholder.unparsed("price", plugin.money(price)));
+    }
+
+    /** /crate place <id>: a nézett blokk tetejére ládát tesz és beállítja nyitható ládának. */
+    private void place(CommandSender sender, String[] args) {
+        if (!admin(sender)) {
+            return;
+        }
+        if (!(sender instanceof Player player)) {
+            plugin.send(sender, "player-only");
+            return;
+        }
+        if (args.length < 2 || crateSection(args[1]) == null) {
+            plugin.send(player, "crate-unknown", Placeholder.unparsed("crate", args.length < 2 ? "?" : args[1]));
+            return;
+        }
+        Block base = player.getTargetBlockExact(6);
+        if (base == null) {
+            plugin.send(player, "look-at-block");
+            return;
+        }
+        String id = args[1];
+        Block chest = base.getRelative(org.bukkit.block.BlockFace.UP);
+        if (chest.getType().isAir()) {
+            Material material = Material.matchMaterial(crateSection(id).getString("block", "ENDER_CHEST"));
+            chest.setType(material == null || material.isAir() ? Material.ENDER_CHEST : material);
+        }
+        placed.put(key(chest), id);
+        save();
+        spawnHologram(chest, id);
+        plugin.send(player, "crate-set", Placeholder.parsed("crate", crateName(id)));
     }
 
     private void set(CommandSender sender, String[] args) {
@@ -698,7 +761,10 @@ public final class CrateManager implements Listener, CommandExecutor {
 
     private void spawnHologram(Block block, String id) {
         block.getWorld().spawn(block.getLocation().add(0.5, 1.9, 0.5), TextDisplay.class, display -> {
-            display.text(plugin.parse(crateName(id) + "<newline><newline>" + plugin.cfg("messages.crate-holo")));
+            long price = crateSection(id).getLong("price", 0);
+            String priceLine = price > 0 ? "<newline><gray>Kulcs ára: <yellow>" + plugin.money(price) : "";
+            display.text(plugin.parse(crateName(id) + "<newline><newline>" + plugin.cfg("messages.crate-holo")
+                    + priceLine));
             display.setBillboard(Display.Billboard.CENTER);
             display.setShadowed(true);
             display.setBackgroundColor(Color.fromARGB(110, 0, 0, 0));

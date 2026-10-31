@@ -422,7 +422,7 @@ messages:
   crate-broadcast: "<gold>★ <white><player> <gray>a(z) <crate> <gray>ládából nyert: <reward>"
   crate-chance: "<!italic><gray>Esély: <white><chance>%"
   crate-protected: "<red>Ezt a ládát nem törheted le."
-  crate-usage: "<yellow>/crate list | buy <id> | set <id> | remove | givekey <játékos> <id> [db]"
+  crate-usage: "<yellow>/crate list | buy <id> | set <id> | place <id> | remove | givekey <játékos> <id> [db]"
   crate-list-header: "<gold><bold>Ládák"
   crate-list-line: "<gray>- <white><id> <gray>(<crate><gray>) ár: <white><price>"
   crate-not-for-sale: "<red>Ez a kulcs nem vásárolható."
@@ -525,6 +525,10 @@ messages:
   zone-info: "<gold>Védett terület: <white><x1>, <z1> <gray>→ <white><x2>, <z2>"
   chat-slow: "<red>Lassabban, kérlek!"
   chat-repeat: "<red>Ezt az üzenetet már elküldted."
+  crate-gui-buy: "<!italic><green><bold>Kulcs vásárlása"
+  crate-gui-price: "<!italic><gray>Ár: <yellow><price>"
+  crate-gui-click: "<!italic><gray>Kattints a megvételhez"
+  crate-gui-nobuy: "<!italic><red>Ez a kulcs nem vásárolható"
 
 crates:
   common:
