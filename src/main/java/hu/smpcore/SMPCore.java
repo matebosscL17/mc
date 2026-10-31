@@ -59,6 +59,8 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
     private TeleportManager teleports;
     private ClaimManager claims;
     private SleepManager sleep;
+    private AnnounceManager announce;
+    private ChatGuard chatGuard;
 
     @Override
     public void onEnable() {
@@ -89,6 +91,8 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         teleports = new TeleportManager(this);
         claims = new ClaimManager(this);
         sleep = new SleepManager(this);
+        announce = new AnnounceManager(this);
+        chatGuard = new ChatGuard(this);
 
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(this, this);
@@ -110,8 +114,9 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         pm.registerEvents(teleports, this);
         pm.registerEvents(claims, this);
         pm.registerEvents(sleep, this);
+        pm.registerEvents(chatGuard, this);
 
-        for (String name : List.of("rules", "discord", "death", "smpcore")) {
+        for (String name : List.of("rules", "discord", "death", "smpcore", "guide")) {
             bind(name, this);
         }
         EconomyCommands eco = new EconomyCommands(this);
@@ -152,6 +157,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         crates.start();
         weekly.start();
         tab.start();
+        announce.start();
         for (org.bukkit.entity.Player online : getServer().getOnlinePlayers()) {
             ranks.refreshTab(online);
         }
@@ -167,6 +173,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         crates.stop();
         weekly.stop();
         tab.stop();
+        announce.stop();
         backup.stop();
         afk.stop();
         saveAll();
@@ -359,6 +366,11 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
                 }
             }
             case "discord" -> sender.sendMessage(parse(cfg("discord.message")));
+            case "guide" -> {
+                for (String line : getConfig().getStringList("guide.lines")) {
+                    sender.sendMessage(parse(line));
+                }
+            }
             case "death" -> {
                 if (!(sender instanceof Player player)) {
                     send(sender, "player-only");
@@ -382,6 +394,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
                     sidebar.reload();
                     jobs.reload();
                     backup.start();
+                    announce.start();
                     send(sender, "reloaded");
                 } else {
                     send(sender, "usage-smpcore");

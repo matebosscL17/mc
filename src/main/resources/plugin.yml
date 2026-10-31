@@ -54,7 +54,7 @@ commands:
     description: Világ mentése most (admin)
   lobby:
     description: Lobby (spawn). Adminoknak /lobby set és /lobby build
-    aliases: [hub]
+    aliases: [hub, spawn]
     usage: /lobby | /lobby set | /lobby build
   rtp:
     description: Véletlen teleport a vadonba
@@ -125,6 +125,9 @@ commands:
     description: A védett spawn terület kijelölése (admin)
     aliases: [szone]
     usage: /spawnzone pos1 | pos2 | set x1 z1 x2 z2 | undo | clear | info | show
+  guide:
+    description: Parancsok és tippek új játékosoknak
+    aliases: [segitseg, info]
 permissions:
   smpcore.admin:
     description: /smpcore reload, /eco, védett sírok megnyitása

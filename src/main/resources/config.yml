@@ -523,6 +523,8 @@ messages:
   zone-cleared: "<yellow>Az összes kijelölt terület törölve, újra a sugár számít."
   zone-radius: "<gray>Nincs kijelölt terület, a spawn körüli sugár védett: <white><radius> blokk"
   zone-info: "<gold>Védett terület: <white><x1>, <z1> <gray>→ <white><x2>, <z2>"
+  chat-slow: "<red>Lassabban, kérlek!"
+  chat-repeat: "<red>Ezt az üzenetet már elküldted."
 
 crates:
   common:
@@ -575,6 +577,8 @@ weekly:
 
 chat:
   enabled: true
+  cooldown-ms: 1500       # két üzenet között legalább ennyi idő (admin kivétel)
+  repeat-seconds: 10      # ugyanazt az üzenetet ennyi ideig nem lehet újra küldeni
   format: "<prefix> <name-color><player> <dark_gray>» <text-color><message>"
 
 ranks:
@@ -618,3 +622,25 @@ sleep:
 
 setup:
   world-border: 12000   # a világ átmérője blokkban (0 = nincs határ)
+
+announce:
+  enabled: true
+  interval-seconds: 300
+  prefix: "<gradient:#ffd700:#ff8c00><bold>Penthouse</bold></gradient> <dark_gray>» <gray>"
+  messages:
+    - "Védd le a házad: <yellow>/claim <gray>(állj bele a kívánt chunkba)."
+    - "Elveszett a cuccod? A sírod megvan: <yellow>/graves <gray>és <yellow>/death<gray>."
+    - "Vegyél és adj el: <yellow>/shop<gray>, <yellow>/sell all <gray>és <yellow>/ah<gray>."
+    - "Napi jutalom: <yellow>/daily <gray>- minden nap lépj be érte!"
+    - "A hét legjobbjai kapnak jutalmat: <yellow>/top <gray>→ Heti mód."
+    - "Otthon: <yellow>/sethome<gray>, <yellow>/home<gray>. Barátodhoz: <yellow>/tpa <név><gray>."
+    - "Új vagy? Parancsok és tippek: <yellow>/guide"
+
+guide:
+  lines:
+    - "<gradient:#ffd700:#ff8c00><bold>✦ PENTHOUSE SMP – Útmutató ✦"
+    - "<yellow>Kezdés: <white>a lobbyból az <gold>arany nyomólappal <white>vagy <yellow>/rtp<white>-vel indulj a vadonba."
+    - "<yellow>Védelem: <white>/claim <gray>(chunk védése), /claim trust <játékos>, /unclaim"
+    - "<yellow>Otthon: <white>/sethome, /home, /homes, /back, /tpa <játékos>, /warp"
+    - "<yellow>Pénz: <white>/balance, /pay, /shop, /sell all, /ah, /jobs, /daily, /bounty"
+    - "<yellow>Egyéb: <white>/top, /graves, /death, /afk, /msg, /rules, /discord, /spawn"
