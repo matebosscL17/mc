@@ -716,6 +716,10 @@ public final class CrateManager implements Listener, CommandExecutor {
             return;
         }
         save();
+        if (target.getType() == Material.ENDER_CHEST || target.getType() == Material.CHEST
+                || target.getType() == Material.BARREL) {
+            target.setType(Material.AIR);
+        }
         for (Entity entity : target.getWorld().getNearbyEntities(
                 target.getLocation().add(0.5, 1.7, 0.5), 1, 2, 1)) {
             if (entity instanceof TextDisplay && entity.getScoreboardTags().contains(TAG)) {
