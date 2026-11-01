@@ -1,0 +1,2 @@
+# Fogadd el a Minecraft EULA-t (https://aka.ms/MinecraftEULA), majd allitsd true-ra.
+eula=false

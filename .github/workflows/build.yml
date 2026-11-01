@@ -23,6 +23,16 @@ jobs:
         with:
           name: SMPCore
           path: target/SMPCore.jar
+      - name: Server package
+        run: |
+          mkdir -p stage
+          cp -r server/. stage/
+          mkdir -p stage/plugins
+          cp target/SMPCore.jar stage/plugins/SMPCore.jar
+          URL=$(curl -sL https://fill.papermc.io/v3/projects/paper/versions/26.3/builds/latest | python3 -c "import sys,json; print(json.load(sys.stdin)['downloads']['server:default']['url'])" || true)
+          if [ -n "$URL" ]; then curl -sL "$URL" -o stage/paper.jar || true; fi
+          ls -la stage
+          (cd stage && zip -qr ../penthouse-smp-server.zip .)
       # Közvetlen letöltési link a jarhoz: Releases -> legutóbbi kiadás
       - name: Release
         if: github.ref == 'refs/heads/main'
@@ -30,7 +40,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete latest --yes --cleanup-tag || true
-          gh release create latest target/SMPCore.jar build/penthouse-pack.zip build/pack.sha1 \
+          gh release create latest target/SMPCore.jar build/penthouse-pack.zip build/pack.sha1 penthouse-smp-server.zip \
             --title "SMPCore (legújabb)" \
             --notes "Automatikusan lefordított SMPCore.jar. Töltsd le, és másold a szerver plugins mappájába." \
             --target "${{ github.sha }}"
