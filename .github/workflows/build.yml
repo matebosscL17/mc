@@ -17,6 +17,8 @@ jobs:
           java-version: '25'
       - name: Build
         run: mvn -B package
+      - name: Resource pack
+        run: python3 tools/build_pack.py
       - uses: actions/upload-artifact@v4
         with:
           name: SMPCore
@@ -28,7 +30,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete latest --yes --cleanup-tag || true
-          gh release create latest target/SMPCore.jar \
+          gh release create latest target/SMPCore.jar build/penthouse-pack.zip build/pack.sha1 \
             --title "SMPCore (legújabb)" \
             --notes "Automatikusan lefordított SMPCore.jar. Töltsd le, és másold a szerver plugins mappájába." \
             --target "${{ github.sha }}"

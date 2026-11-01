@@ -731,6 +731,7 @@ rare-items:
 resource-pack:
   enabled: true
   required: true
-  url: "https://raw.githubusercontent.com/matebosscL17/mc/main/pack/penthouse-pack.zip"
-  sha1: "8545d5714166ba9ea88668beee1c0e15a5ee432a"
+  url: "https://github.com/matebosscL17/mc/releases/download/latest/penthouse-pack.zip"
+  sha1-url: "https://github.com/matebosscL17/mc/releases/download/latest/pack.sha1"   # automatikusan frissül
+  sha1: ""   # üresen hagyva a sha1-url-ből töltődik be
   prompt: "<gold>Penthouse SMP csomag: egyedi kardok és tárgyak kinézete"

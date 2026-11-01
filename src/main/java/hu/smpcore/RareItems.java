@@ -50,8 +50,35 @@ public final class RareItems implements Listener, CommandExecutor, TabCompleter 
         this.key = new NamespacedKey(plugin, "rare_item");
     }
 
+    private volatile String packHash;
+
+    /** A pack sha1-jét letölti a kiadásból (aszinkron), így új textúra után nincs kézi teendő. */
+    public void refreshPack() {
+        String hashUrl = plugin.getConfig().getString("resource-pack.sha1-url", "");
+        if (hashUrl.isEmpty()) {
+            return;
+        }
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                java.net.http.HttpClient client = java.net.http.HttpClient.newBuilder()
+                        .followRedirects(java.net.http.HttpClient.Redirect.ALWAYS).build();
+                java.net.http.HttpResponse<String> response = client.send(
+                        java.net.http.HttpRequest.newBuilder(java.net.URI.create(hashUrl)).build(),
+                        java.net.http.HttpResponse.BodyHandlers.ofString());
+                String body = response.body().trim();
+                if (response.statusCode() == 200 && body.length() == 40) {
+                    packHash = body;
+                    plugin.getLogger().info("Resource pack sha1 frissítve: " + body);
+                }
+            } catch (Exception ex) {
+                plugin.getLogger().warning("Nem sikerült letölteni a pack sha1-et: " + ex.getMessage());
+            }
+        });
+    }
+
     public void start() {
         stop();
+        refreshPack();
         auraTask = plugin.getServer().getScheduler().runTaskTimer(plugin, this::aura, 20L, 8L);
     }
 
@@ -68,7 +95,7 @@ public final class RareItems implements Listener, CommandExecutor, TabCompleter 
             return;
         }
         String url = plugin.getConfig().getString("resource-pack.url", "");
-        String sha1 = plugin.getConfig().getString("resource-pack.sha1", "");
+        String sha1 = packHash != null ? packHash : plugin.getConfig().getString("resource-pack.sha1", "");
         if (url.isEmpty() || sha1.length() != 40) {
             return;
         }
@@ -251,7 +278,27 @@ public final class RareItems implements Listener, CommandExecutor, TabCompleter 
             sender.sendMessage(plugin.parse("<green>Odaadva: <white>" + target.getName()));
             return true;
         }
-        sender.sendMessage(plugin.parse("<yellow>/rareitem list | give <játékos> <id>"));
+        if (args[0].equalsIgnoreCase("create") && args.length >= 4) {
+            String id = args[1].toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9_]", "");
+            Material material = Material.matchMaterial(args[2]);
+            if (id.isEmpty() || material == null || material.isAir()) {
+                sender.sendMessage(plugin.parse("<red>Hibás azonosító vagy anyag."));
+                return true;
+            }
+            String base = "rare-items." + id;
+            plugin.getConfig().set(base + ".material", material.name());
+            plugin.getConfig().set(base + ".name", "<gold><bold>" + String.join(" ", java.util.Arrays.copyOfRange(args, 3, args.length)));
+            plugin.getConfig().set(base + ".lore", List.of("<dark_gray>Ritka tárgy"));
+            plugin.getConfig().set(base + ".model", "smpcore:" + id);
+            plugin.getConfig().set(base + ".glow", true);
+            plugin.saveConfig();
+            sender.sendMessage(plugin.parse("<green>Létrehozva: <white>" + id
+                    + "<newline><gray>Kinézet: töltsd fel a <white>" + id + ".png <gray>fájlt a GitHub repo "
+                    + "<white>pack/textures <gray>mappájába, a build után <white>/smpcore reload<gray>, és újra be kell lépni."
+                    + "<newline><gray>Képesség/enchant a config.yml rare-items részében állítható."));
+            return true;
+        }
+        sender.sendMessage(plugin.parse("<yellow>/rareitem list | give <játékos> <id> | create <id> <anyag> <név...>"));
         return true;
     }
 
@@ -259,7 +306,7 @@ public final class RareItems implements Listener, CommandExecutor, TabCompleter 
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> out = new ArrayList<>();
         if (args.length == 1) {
-            out.addAll(List.of("list", "give"));
+            out.addAll(List.of("list", "give", "create"));
         } else if (args.length == 2) {
             Bukkit.getOnlinePlayers().forEach(p -> out.add(p.getName()));
         } else if (args.length == 3) {

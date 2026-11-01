@@ -414,6 +414,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
                     sidebar.reload();
                     jobs.reload();
                     backup.start();
+                    rareItems.start();
                     announce.start();
                     send(sender, "reloaded");
                 } else {
