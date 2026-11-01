@@ -52,28 +52,8 @@ public final class RareItems implements Listener, CommandExecutor, TabCompleter 
 
     private volatile String packHash;
 
-    /** A pack sha1-jét letölti a kiadásból (aszinkron), így új textúra után nincs kézi teendő. */
     public void refreshPack() {
-        String hashUrl = plugin.getConfig().getString("resource-pack.sha1-url", "");
-        if (hashUrl.isEmpty()) {
-            return;
-        }
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                java.net.http.HttpClient client = java.net.http.HttpClient.newBuilder()
-                        .followRedirects(java.net.http.HttpClient.Redirect.ALWAYS).build();
-                java.net.http.HttpResponse<String> response = client.send(
-                        java.net.http.HttpRequest.newBuilder(java.net.URI.create(hashUrl)).build(),
-                        java.net.http.HttpResponse.BodyHandlers.ofString());
-                String body = response.body().trim();
-                if (response.statusCode() == 200 && body.length() == 40) {
-                    packHash = body;
-                    plugin.getLogger().info("Resource pack sha1 frissítve: " + body);
-                }
-            } catch (Exception ex) {
-                plugin.getLogger().warning("Nem sikerült letölteni a pack sha1-et: " + ex.getMessage());
-            }
-        });
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, this::fetchHash);
     }
 
     public void start() {
@@ -89,33 +69,62 @@ public final class RareItems implements Listener, CommandExecutor, TabCompleter 
         }
     }
 
+    private static final String PACK_BASE = "https://github.com/matebosscL17/mc/releases/download/latest/";
+
+    private String packUrl() {
+        String custom = plugin.getConfig().getString("resource-pack.custom-url", "");
+        return custom.isEmpty() ? PACK_BASE + "penthouse-pack.zip" : custom;
+    }
+
+    private String hashUrl() {
+        String custom = plugin.getConfig().getString("resource-pack.custom-sha1-url", "");
+        return custom.isEmpty() ? PACK_BASE + "pack.sha1" : custom;
+    }
+
+    /** Letölti a csomag aktuális sha1-jét (belépéskor, így mindig egyezik a kiadott csomaggal). */
+    private String fetchHash() {
+        try {
+            java.net.http.HttpClient client = java.net.http.HttpClient.newBuilder()
+                    .followRedirects(java.net.http.HttpClient.Redirect.ALWAYS)
+                    .connectTimeout(java.time.Duration.ofSeconds(5)).build();
+            java.net.http.HttpResponse<String> response = client.send(
+                    java.net.http.HttpRequest.newBuilder(java.net.URI.create(hashUrl()))
+                            .timeout(java.time.Duration.ofSeconds(8)).build(),
+                    java.net.http.HttpResponse.BodyHandlers.ofString());
+            String body = response.body().trim();
+            if (response.statusCode() == 200 && body.matches("[0-9a-fA-F]{40}")) {
+                packHash = body;
+            }
+        } catch (Exception ex) {
+            plugin.getLogger().warning("Nem sikerült letölteni a pack sha1-et: " + ex.getMessage());
+        }
+        return packHash;
+    }
+
     @EventHandler
     public void onJoin(org.bukkit.event.player.PlayerJoinEvent event) {
-        if (!plugin.getConfig().getBoolean("resource-pack.enabled", false)) {
-            return;
-        }
-        String url = plugin.getConfig().getString("resource-pack.url", "");
-        String sha1 = packHash != null ? packHash : plugin.getConfig().getString("resource-pack.sha1", "");
-        if (url.isEmpty() || sha1.length() != 40) {
-            return;
-        }
-        byte[] hash = new byte[20];
-        try {
-            for (int i = 0; i < 20; i++) {
-                hash[i] = (byte) Integer.parseInt(sha1.substring(i * 2, i * 2 + 2), 16);
-            }
-        } catch (NumberFormatException ex) {
-            plugin.getLogger().warning("Hibás resource-pack sha1 a configban.");
+        if (!plugin.getConfig().getBoolean("resource-pack.enabled", true)) {
             return;
         }
         Player player = event.getPlayer();
-        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
-            if (player.isOnline()) {
-                player.setResourcePack(java.util.UUID.nameUUIDFromBytes("penthouse-pack".getBytes()), url, hash,
-                        plugin.parse(plugin.getConfig().getString("resource-pack.prompt", "")),
-                        plugin.getConfig().getBoolean("resource-pack.required", false));
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            String sha1 = fetchHash();
+            if (sha1 == null || sha1.length() != 40) {
+                return;
             }
-        }, 20L);
+            byte[] hash = new byte[20];
+            for (int i = 0; i < 20; i++) {
+                hash[i] = (byte) Integer.parseInt(sha1.substring(i * 2, i * 2 + 2), 16);
+            }
+            plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                if (player.isOnline()) {
+                    player.setResourcePack(java.util.UUID.nameUUIDFromBytes("penthouse-pack".getBytes()), packUrl(),
+                            hash, plugin.parse(plugin.getConfig().getString("resource-pack.prompt",
+                                    "<gold>Penthouse SMP csomag")),
+                            plugin.getConfig().getBoolean("resource-pack.required", false));
+                }
+            }, 20L);
+        });
     }
 
     private ConfigurationSection section(String id) {
