@@ -655,6 +655,16 @@ public final class CrateManager implements Listener, CommandExecutor {
                 Placeholder.unparsed("price", plugin.money(price)));
     }
 
+    /** Kódból regisztrál egy ládát (a lobby építő használja). */
+    public void registerChest(Block block, String id) {
+        if (crateSection(id) == null) {
+            return;
+        }
+        placed.put(key(block), id);
+        save();
+        spawnHologram(block, id);
+    }
+
     /** /crate place <id>: a nézett blokk tetejére ládát tesz és beállítja nyitható ládának. */
     private void place(CommandSender sender, String[] args) {
         if (!admin(sender)) {

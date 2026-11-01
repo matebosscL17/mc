@@ -48,27 +48,27 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public final class LobbyManager implements Listener, CommandExecutor {
 
-    private record Op(int x, int y, int z, Material material) {
+    record Op(int x, int y, int z, Material material) {
     }
 
     /** Építési terv: a középponthoz képesti koordinátákkal dolgozunk. */
-    private static final class Planner {
+    static final class Planner {
         private final int cx;
         private final int cy;
         private final int cz;
-        private final List<Op> ops = new ArrayList<>();
+        final List<Op> ops = new ArrayList<>();
 
-        private Planner(int cx, int cy, int cz) {
+        Planner(int cx, int cy, int cz) {
             this.cx = cx;
             this.cy = cy;
             this.cz = cz;
         }
 
-        private void set(int dx, int dy, int dz, Material material) {
+        void set(int dx, int dy, int dz, Material material) {
             ops.add(new Op(cx + dx, cy + dy, cz + dz, material));
         }
 
-        private void disc(int radius, int dy, Material material) {
+        void disc(int radius, int dy, Material material) {
             int limit = radius * radius + radius;
             for (int dx = -radius; dx <= radius; dx++) {
                 for (int dz = -radius; dz <= radius; dz++) {
@@ -168,7 +168,7 @@ public final class LobbyManager implements Listener, CommandExecutor {
                 here.getWorld().setSpawnLocation(here);
                 plugin.send(player, "lobby-set");
             }
-            case "build" -> build(player);
+            case "build" -> build(player, args.length > 1 ? args[1] : null);
             default -> plugin.send(player, "lobby-usage");
         }
         return true;
@@ -183,7 +183,7 @@ public final class LobbyManager implements Listener, CommandExecutor {
 
     // ---------- Lobby építés ----------
 
-    private void build(Player admin) {
+    private void build(Player admin, String radiusArg) {
         if (building) {
             plugin.send(admin, "lobby-building");
             return;
@@ -193,11 +193,19 @@ public final class LobbyManager implements Listener, CommandExecutor {
             plugin.send(admin, "lobby-wrong-world");
             return;
         }
-        int radius = Math.max(12, Math.min(40, plugin.getConfig().getInt("lobby.platform-radius", 24)));
+        int configured = plugin.getConfig().getInt("lobby.platform-radius", 48);
+        if (radiusArg != null) {
+            try {
+                configured = Integer.parseInt(radiusArg);
+            } catch (NumberFormatException ignored) {
+                // marad a configban megadott
+            }
+        }
+        int radius = Math.max(12, Math.min(64, configured));
         int cx = admin.getLocation().getBlockX();
         int cz = admin.getLocation().getBlockZ();
         int cy = admin.getLocation().getBlockY() - 1;
-        if (cy + 12 >= world.getMaxHeight() || cy - 12 <= world.getMinHeight()) {
+        if (cy + 24 >= world.getMaxHeight() || cy - radius / 2 - 8 <= world.getMinHeight()) {
             plugin.send(admin, "lobby-height");
             return;
         }
@@ -243,6 +251,9 @@ public final class LobbyManager implements Listener, CommandExecutor {
         text(new Location(world, cx + radius / 2 + 0.5, cy + 3.5, cz + 0.5),
                 "<gold><bold>INDULÁS A VILÁGBA<newline><gray>Állj az arany nyomólapra!", 2f);
 
+        if (plugin.getConfig().getBoolean("lobby.big-design", true)) {
+            LobbyDesign.afterBuild(plugin, world, cx, cy, cz, radius);
+        }
         world.setSpawnLocation(spawn);
         saveLobby(spawn);
         plugin.getLogger().info("Lobby elkészült: " + cx + ", " + cy + ", " + cz);
@@ -264,6 +275,9 @@ public final class LobbyManager implements Listener, CommandExecutor {
 
     /** A teljes építési terv. Sorrend: felső lap (hogy a repülő építő rá tudjon állni), tér, alsó rész, részletek. */
     private List<Op> plan(int cx, int cy, int cz, int radius) {
+        if (plugin.getConfig().getBoolean("lobby.big-design", true)) {
+            return LobbyDesign.plan(cx, cy, cz, radius);
+        }
         Planner p = new Planner(cx, cy, cz);
         double rimStart = (radius - 1.5) * (radius - 1.5);
         int limit = radius * radius + radius;

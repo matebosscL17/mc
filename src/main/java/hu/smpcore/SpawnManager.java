@@ -78,7 +78,7 @@ public final class SpawnManager implements Listener, CommandExecutor {
         }
     }
 
-    private void addRegion(int x1, int z1, int x2, int z2) {
+    public void addRegion(int x1, int z1, int x2, int z2) {
         regions.add(new int[]{Math.min(x1, x2), Math.max(x1, x2), Math.min(z1, z2), Math.max(z1, z2)});
         saveRegions();
     }
