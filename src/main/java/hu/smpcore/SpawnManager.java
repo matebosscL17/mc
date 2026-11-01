@@ -271,7 +271,7 @@ public final class SpawnManager implements Listener, CommandExecutor {
     }
 
     private boolean bypass(Player player) {
-        return player.hasPermission("smpcore.admin");
+        return player.hasPermission("smpcore.admin") && player.getGameMode() == org.bukkit.GameMode.CREATIVE;
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
