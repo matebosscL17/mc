@@ -154,8 +154,7 @@ public final class LobbyManager implements Listener, CommandExecutor {
             return true;
         }
         if (args.length == 0) {
-            player.teleportAsync(lobbyOrSpawn());
-            plugin.send(player, "lobby-tp");
+            startSpawnWarmup(player);
             return true;
         }
         if (!player.hasPermission("smpcore.admin")) {
@@ -488,6 +487,72 @@ public final class LobbyManager implements Listener, CommandExecutor {
         String id = new ArrayList<>(BIOMES.keySet()).get(index);
         player.closeInventory();
         randomTeleport(player, id);
+    }
+
+    // ---------- /spawn várakozással ----------
+
+    private final Map<UUID, Location> spawnWarming = new ConcurrentHashMap<>();
+
+    private String text(String key, String fallback) {
+        return plugin.getConfig().getString("messages." + key, fallback);
+    }
+
+    private void startSpawnWarmup(Player player) {
+        UUID id = player.getUniqueId();
+        int seconds = plugin.getConfig().getInt("teleport.spawn-warmup-seconds", 5);
+        if (seconds <= 0) {
+            player.teleportAsync(lobbyOrSpawn());
+            plugin.send(player, "lobby-tp");
+            return;
+        }
+        if (spawnWarming.containsKey(id)) {
+            return;
+        }
+        spawnWarming.put(id, player.getLocation());
+        player.sendMessage(plugin.parse(text("spawn-warmup",
+                "<yellow>Ne mozogj! <white><seconds> <yellow>másodperc múlva a spawnra teleportálsz.")
+                .replace("<seconds>", String.valueOf(seconds))));
+        new BukkitRunnable() {
+            int left = seconds;
+
+            @Override
+            public void run() {
+                if (!player.isOnline() || !spawnWarming.containsKey(id)) {
+                    spawnWarming.remove(id);
+                    cancel();
+                    return;
+                }
+                if (left <= 0) {
+                    spawnWarming.remove(id);
+                    cancel();
+                    player.teleportAsync(lobbyOrSpawn());
+                    plugin.send(player, "lobby-tp");
+                    return;
+                }
+                player.sendActionBar(plugin.parse("<yellow>Teleport: <white>" + left + " <yellow>mp"));
+                left--;
+            }
+        }.runTaskTimer(plugin, 0L, 20L);
+    }
+
+    @EventHandler
+    public void onSpawnMove(org.bukkit.event.player.PlayerMoveEvent event) {
+        Location start = spawnWarming.get(event.getPlayer().getUniqueId());
+        if (start == null || event.getTo() == null) {
+            return;
+        }
+        if (!start.getWorld().equals(event.getTo().getWorld()) || start.distanceSquared(event.getTo()) > 1.0) {
+            spawnWarming.remove(event.getPlayer().getUniqueId());
+            event.getPlayer().sendMessage(plugin.parse(text("spawn-cancel-move",
+                    "<red>Megmozdultál, a teleport megszakadt.")));
+        }
+    }
+
+    @EventHandler
+    public void onSpawnDamage(org.bukkit.event.entity.EntityDamageEvent event) {
+        if (event.getEntity() instanceof Player p && spawnWarming.remove(p.getUniqueId()) != null) {
+            p.sendMessage(plugin.parse(text("spawn-cancel-damage", "<red>Sérülés miatt a teleport megszakadt.")));
+        }
     }
 
     // ---------- Mindig nappal a spawnban ----------

@@ -529,6 +529,9 @@ messages:
   crate-gui-price: "<!italic><gray>Ár: <yellow><price>"
   crate-gui-click: "<!italic><gray>Kattints a megvételhez"
   crate-gui-nobuy: "<!italic><red>Ez a kulcs nem vásárolható"
+  spawn-warmup: "<yellow>Ne mozogj! <white><seconds> <yellow>másodperc múlva a spawnra teleportálsz."
+  spawn-cancel-move: "<red>Megmozdultál, a teleport megszakadt."
+  spawn-cancel-damage: "<red>Sérülés miatt a teleport megszakadt."
 
 crates:
   common:
@@ -609,6 +612,7 @@ tab:
 
 teleport:
   warmup-seconds: 3
+  spawn-warmup-seconds: 5   # /spawn és /lobby várakozás (mozgásra megszakad)
   cooldown-seconds: 5
   request-expire-seconds: 60
   max-homes: 3
