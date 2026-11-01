@@ -127,6 +127,21 @@ public final class RareItems implements Listener, CommandExecutor, TabCompleter 
         });
     }
 
+    private final java.util.Map<java.util.UUID, String> packStatus = new java.util.concurrent.ConcurrentHashMap<>();
+
+    @EventHandler
+    public void onPackStatus(org.bukkit.event.player.PlayerResourcePackStatusEvent event) {
+        packStatus.put(event.getPlayer().getUniqueId(), event.getStatus().name());
+        plugin.getLogger().info("Resource pack állapot (" + event.getPlayer().getName() + "): " + event.getStatus());
+        switch (event.getStatus()) {
+            case FAILED_DOWNLOAD, INVALID_URL, FAILED_RELOAD, DISCARDED ->
+                    event.getPlayer().sendMessage(plugin.parse("<red>A csomag nem töltődött be: <white>"
+                            + event.getStatus().name() + " <gray>(szólj egy adminnak)"));
+            default -> {
+            }
+        }
+    }
+
     private ConfigurationSection section(String id) {
         return plugin.getConfig().getConfigurationSection("rare-items." + id);
     }
@@ -287,6 +302,17 @@ public final class RareItems implements Listener, CommandExecutor, TabCompleter 
             sender.sendMessage(plugin.parse("<green>Odaadva: <white>" + target.getName()));
             return true;
         }
+        if (args[0].equalsIgnoreCase("pack") && sender instanceof Player self) {
+            ItemStack hand = self.getInventory().getItemInMainHand();
+            String model = hand.hasItemMeta() && hand.getItemMeta().hasItemModel()
+                    ? hand.getItemMeta().getItemModel().toString() : "nincs";
+            sender.sendMessage(plugin.parse("<gold>Csomag állapota: <white>"
+                    + packStatus.getOrDefault(self.getUniqueId(), "még nem kapott jelentést")
+                    + "<newline><gold>Kezedben lévő tárgy modellje: <white>" + model
+                    + "<newline><gold>Csomag címe: <white>" + packUrl()
+                    + "<newline><gold>sha1: <white>" + packHash));
+            return true;
+        }
         if (args[0].equalsIgnoreCase("create") && args.length >= 4) {
             String id = args[1].toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9_]", "");
             Material material = Material.matchMaterial(args[2]);
@@ -315,7 +341,7 @@ public final class RareItems implements Listener, CommandExecutor, TabCompleter 
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> out = new ArrayList<>();
         if (args.length == 1) {
-            out.addAll(List.of("list", "give", "create"));
+            out.addAll(List.of("list", "give", "create", "pack"));
         } else if (args.length == 2) {
             Bukkit.getOnlinePlayers().forEach(p -> out.add(p.getName()));
         } else if (args.length == 3) {
