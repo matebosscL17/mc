@@ -554,6 +554,7 @@ crates:
       - {weight: 30, icon: GOLDEN_APPLE, name: "<yellow>4 aranyalma", item: "GOLDEN_APPLE:4"}
       - {weight: 25, icon: SUNFLOWER, name: "<gold>$3000", money: 3000}
       - {weight: 10, icon: NETHERITE_INGOT, name: "<dark_purple>Netherite ingot", item: "NETHERITE_INGOT:1", broadcast: true}
+      - {weight: 5, icon: DIAMOND_SWORD, name: "<red><bold>Vámpírkard", item: "rare:vampire_blade", broadcast: true}
   legendary:
     name: "<gold><bold>Legendás láda"
     price: 0
@@ -564,6 +565,10 @@ crates:
       - {weight: 30, icon: ENCHANTED_GOLDEN_APPLE, name: "<gold>2 isteni alma", item: "ENCHANTED_GOLDEN_APPLE:2", broadcast: true}
       - {weight: 20, icon: SUNFLOWER, name: "<gold>$20000", money: 20000, broadcast: true}
       - {weight: 10, icon: BEACON, name: "<aqua>Beacon", item: "BEACON:1", broadcast: true}
+      - {weight: 6, icon: NETHERITE_SWORD, name: "<gradient:#5ee7ff:#a64dff><bold>Viharkard", item: "rare:storm_blade", broadcast: true}
+      - {weight: 5, icon: DIAMOND_SWORD, name: "<aqua><bold>Fagyos Penge", item: "rare:frost_blade", broadcast: true}
+      - {weight: 4, icon: NETHERITE_SWORD, name: "<gold><bold>Tűzszív", item: "rare:flame_blade", broadcast: true}
+      - {weight: 3, icon: NETHERITE_AXE, name: "<dark_gray><bold>Wither Fejsze", item: "rare:wither_axe", broadcast: true}
 
 weekly:
   enabled: true
@@ -657,3 +662,62 @@ guide:
 survival:
   enabled: true
   world-name: survival
+
+# Ritka, egyedi tárgyak. Adás: /rareitem give <játékos> <id>; ládában: item: "rare:<id>"
+# ability: lightning | lifesteal | freeze | fire | wither, chance: esély (0-1), amount: erősség
+# model: másik tárgy kinézete (pl. minecraft:trident); particle: aura a kézben tartva; color: bőr páncélhoz
+rare-items:
+  storm_blade:
+    material: NETHERITE_SWORD
+    name: "<gradient:#5ee7ff:#a64dff><bold>Viharkard"
+    lore:
+      - "<dark_gray>Ritka fegyver"
+      - "<gray>Villámot idéz az ellenségre."
+      - "<aqua>25% esély: +5 sebzés villámmal"
+    enchants: {sharpness: 6, unbreaking: 4, mending: 1, looting: 3}
+    ability: lightning
+    chance: 0.25
+    amount: 5
+    particle: ELECTRIC_SPARK
+  vampire_blade:
+    material: DIAMOND_SWORD
+    name: "<dark_red><bold>Vámpírkard"
+    lore:
+      - "<dark_gray>Ritka fegyver"
+      - "<gray>Ütésre életet szív el."
+    enchants: {sharpness: 5, unbreaking: 3, mending: 1}
+    ability: lifesteal
+    chance: 0.5
+    amount: 4
+    particle: DAMAGE_INDICATOR
+  frost_blade:
+    material: DIAMOND_SWORD
+    name: "<aqua><bold>Fagyos Penge"
+    lore:
+      - "<dark_gray>Ritka fegyver"
+      - "<gray>Lefagyasztja és lelassítja az ellenfelet."
+    enchants: {sharpness: 5, unbreaking: 3, mending: 1}
+    ability: freeze
+    chance: 0.35
+    particle: SNOWFLAKE
+  flame_blade:
+    material: NETHERITE_SWORD
+    name: "<gold><bold>Tűzszív"
+    lore:
+      - "<dark_gray>Ritka fegyver"
+      - "<gray>Felgyújtja, akit eltalál."
+    enchants: {sharpness: 5, fire_aspect: 2, unbreaking: 4, mending: 1}
+    ability: fire
+    chance: 0.4
+    amount: 6
+    particle: FLAME
+  wither_axe:
+    material: NETHERITE_AXE
+    name: "<dark_gray><bold>Wither Fejsze"
+    lore:
+      - "<dark_gray>Ritka fegyver"
+      - "<gray>Sorvasztó átkot szór az ellenségre."
+    enchants: {sharpness: 6, efficiency: 5, unbreaking: 4, mending: 1}
+    ability: wither
+    chance: 0.3
+    particle: SMOKE

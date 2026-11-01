@@ -56,6 +56,10 @@ commands:
     description: Lobby (spawn). Adminoknak /lobby set és /lobby build
     aliases: [hub, spawn]
     usage: /lobby | /lobby set | /lobby build
+  rareitem:
+    description: Ritka, egyedi tárgyak adása (admin)
+    aliases: [ritka]
+    usage: /rareitem list | give <játékos> <id>
   rtp:
     description: Véletlen teleport a vadonba
     aliases: [wild]

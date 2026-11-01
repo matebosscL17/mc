@@ -298,7 +298,14 @@ public final class CrateManager implements Listener, CommandExecutor {
         if (reward.money() > 0) {
             plugin.economy().add(player.getUniqueId(), reward.money());
         }
-        if (!reward.item().isEmpty()) {
+        if (reward.item().toLowerCase().startsWith("rare:")) {
+            ItemStack rare = plugin.rareItems().create(reward.item().substring(5).trim());
+            if (rare != null) {
+                giveItem(player, rare);
+            } else {
+                plugin.getLogger().warning("Ismeretlen ritka tárgy a láda nyereményében: " + reward.item());
+            }
+        } else if (!reward.item().isEmpty()) {
             String[] parts = reward.item().split(":");
             Material material = Material.matchMaterial(parts[0].trim());
             if (material != null && !material.isAir()) {

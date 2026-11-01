@@ -47,6 +47,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
     private AuctionManager auctions;
     private SpawnManager spawn;
     private SurvivalWorld survival;
+    private RareItems rareItems;
     private AfkManager afk;
     private BackupManager backup;
     private LobbyManager lobby;
@@ -153,6 +154,10 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         sidebar.start();
         afk.start();
         backup.start();
+        rareItems = new RareItems(this);
+        getServer().getPluginManager().registerEvents(rareItems, this);
+        bind("rareitem", rareItems);
+        rareItems.start();
         survival = new SurvivalWorld(this);
         getServer().getPluginManager().registerEvents(survival, this);
         getServer().getScheduler().runTask(this, survival::create);
@@ -174,6 +179,9 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
     @Override
     public void onDisable() {
         holos.stop();
+        if (rareItems != null) {
+            rareItems.stop();
+        }
         crates.stop();
         weekly.stop();
         tab.stop();
@@ -214,6 +222,10 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
     }
 
     // ---------- Közös segédfüggvények (a többi osztály is használja) ----------
+
+    public RareItems rareItems() {
+        return rareItems;
+    }
 
     public SurvivalWorld survival() {
         return survival;
