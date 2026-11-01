@@ -46,6 +46,7 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
     private JobsManager jobs;
     private AuctionManager auctions;
     private SpawnManager spawn;
+    private SurvivalWorld survival;
     private AfkManager afk;
     private BackupManager backup;
     private LobbyManager lobby;
@@ -152,6 +153,9 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
         sidebar.start();
         afk.start();
         backup.start();
+        survival = new SurvivalWorld(this);
+        getServer().getPluginManager().registerEvents(survival, this);
+        getServer().getScheduler().runTask(this, survival::create);
         applyWorldSetup();
         holos.start();
         crates.start();
@@ -210,6 +214,10 @@ public final class SMPCore extends JavaPlugin implements Listener, CommandExecut
     }
 
     // ---------- Közös segédfüggvények (a többi osztály is használja) ----------
+
+    public SurvivalWorld survival() {
+        return survival;
+    }
 
     public SpawnManager spawn() {
         return spawn;

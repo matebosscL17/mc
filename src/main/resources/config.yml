@@ -618,7 +618,7 @@ claims:
   price: 2000
   max-per-player: 9
   refund-percent: 50
-  worlds: [world]
+  worlds: [world, survival]
 
 sleep:
   enabled: true
@@ -648,3 +648,8 @@ guide:
     - "<yellow>Otthon: <white>/sethome, /home, /homes, /back, /tpa <játékos>, /warp"
     - "<yellow>Pénz: <white>/balance, /pay, /shop, /sell all, /ah, /jobs, /daily, /bounty"
     - "<yellow>Egyéb: <white>/top, /graves, /death, /afk, /msg, /rules, /discord, /spawn"
+
+# Külön dimenzió a túlélésnek: a spawn/lobby az alap világban van, az /rtp a túlélő világba visz.
+survival:
+  enabled: true
+  world-name: survival

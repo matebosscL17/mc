@@ -395,7 +395,7 @@ public final class LobbyManager implements Listener, CommandExecutor {
             return;
         }
         searching.add(id);
-        tryRandom(player, Bukkit.getWorlds().get(0), biomeGroup, 0);
+        tryRandom(player, plugin.survival().world(), biomeGroup, 0);
     }
 
     // ---------- Biom választó ----------
