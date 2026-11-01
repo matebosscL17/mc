@@ -668,6 +668,7 @@ survival:
 # model: másik tárgy kinézete (pl. minecraft:trident); particle: aura a kézben tartva; color: bőr páncélhoz
 rare-items:
   storm_blade:
+    model: smpcore:storm_blade
     material: NETHERITE_SWORD
     name: "<gradient:#5ee7ff:#a64dff><bold>Viharkard"
     lore:
@@ -680,6 +681,7 @@ rare-items:
     amount: 5
     particle: ELECTRIC_SPARK
   vampire_blade:
+    model: smpcore:vampire_blade
     material: DIAMOND_SWORD
     name: "<dark_red><bold>Vámpírkard"
     lore:
@@ -691,6 +693,7 @@ rare-items:
     amount: 4
     particle: DAMAGE_INDICATOR
   frost_blade:
+    model: smpcore:frost_blade
     material: DIAMOND_SWORD
     name: "<aqua><bold>Fagyos Penge"
     lore:
@@ -701,6 +704,7 @@ rare-items:
     chance: 0.35
     particle: SNOWFLAKE
   flame_blade:
+    model: smpcore:flame_blade
     material: NETHERITE_SWORD
     name: "<gold><bold>Tűzszív"
     lore:
@@ -712,6 +716,7 @@ rare-items:
     amount: 6
     particle: FLAME
   wither_axe:
+    model: smpcore:wither_axe
     material: NETHERITE_AXE
     name: "<dark_gray><bold>Wither Fejsze"
     lore:
@@ -721,3 +726,11 @@ rare-items:
     ability: wither
     chance: 0.3
     particle: SMOKE
+
+# Resource pack: a ritka tárgyak egyedi kinézetéhez. Belépéskor elküldi a játékosnak.
+resource-pack:
+  enabled: true
+  required: true
+  url: "https://raw.githubusercontent.com/matebosscL17/mc/main/pack/penthouse-pack.zip"
+  sha1: "8545d5714166ba9ea88668beee1c0e15a5ee432a"
+  prompt: "<gold>Penthouse SMP csomag: egyedi kardok és tárgyak kinézete"

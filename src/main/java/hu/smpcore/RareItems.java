@@ -62,6 +62,35 @@ public final class RareItems implements Listener, CommandExecutor, TabCompleter 
         }
     }
 
+    @EventHandler
+    public void onJoin(org.bukkit.event.player.PlayerJoinEvent event) {
+        if (!plugin.getConfig().getBoolean("resource-pack.enabled", false)) {
+            return;
+        }
+        String url = plugin.getConfig().getString("resource-pack.url", "");
+        String sha1 = plugin.getConfig().getString("resource-pack.sha1", "");
+        if (url.isEmpty() || sha1.length() != 40) {
+            return;
+        }
+        byte[] hash = new byte[20];
+        try {
+            for (int i = 0; i < 20; i++) {
+                hash[i] = (byte) Integer.parseInt(sha1.substring(i * 2, i * 2 + 2), 16);
+            }
+        } catch (NumberFormatException ex) {
+            plugin.getLogger().warning("Hibás resource-pack sha1 a configban.");
+            return;
+        }
+        Player player = event.getPlayer();
+        plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            if (player.isOnline()) {
+                player.setResourcePack(java.util.UUID.nameUUIDFromBytes("penthouse-pack".getBytes()), url, hash,
+                        plugin.parse(plugin.getConfig().getString("resource-pack.prompt", "")),
+                        plugin.getConfig().getBoolean("resource-pack.required", false));
+            }
+        }, 20L);
+    }
+
     private ConfigurationSection section(String id) {
         return plugin.getConfig().getConfigurationSection("rare-items." + id);
     }
