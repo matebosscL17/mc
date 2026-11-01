@@ -17,7 +17,12 @@ import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Transformation;
@@ -27,6 +32,8 @@ import org.joml.Vector3f;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -92,6 +99,7 @@ public final class LobbyManager implements Listener, CommandExecutor {
         this.plugin = plugin;
         this.file = new File(plugin.getDataFolder(), "lobby.yml");
         this.data = file.exists() ? YamlConfiguration.loadConfiguration(file) : new YamlConfiguration();
+        startDaylight();
     }
 
     // ---------- Lobby hely ----------
@@ -138,7 +146,11 @@ public final class LobbyManager implements Listener, CommandExecutor {
             return true;
         }
         if (command.getName().equalsIgnoreCase("rtp")) {
-            randomTeleport(player);
+            if (args.length > 0 && BIOMES.containsKey(args[0].toLowerCase())) {
+                randomTeleport(player, args[0].toLowerCase());
+            } else {
+                openBiomeMenu(player);
+            }
             return true;
         }
         if (args.length == 0) {
@@ -362,10 +374,10 @@ public final class LobbyManager implements Listener, CommandExecutor {
         if (dx * dx + dz * dz > 50 * 50) {
             return;
         }
-        randomTeleport(event.getPlayer());
+        openBiomeMenu(event.getPlayer());
     }
 
-    private void randomTeleport(Player player) {
+    private void randomTeleport(Player player, String biomeGroup) {
         if (!plugin.getConfig().getBoolean("rtp.enabled", true)) {
             plugin.send(player, "rtp-disabled");
             return;
@@ -383,42 +395,121 @@ public final class LobbyManager implements Listener, CommandExecutor {
             return;
         }
         searching.add(id);
-        dropRandom(player, Bukkit.getWorlds().get(0));
+        plugin.send(player, "rtp-searching");
+        tryRandom(player, Bukkit.getWorlds().get(0), biomeGroup, 0);
     }
 
-    /** Nem keres helyet: véletlen koordinátára azonnal az égből ejti le a játékost (lassú esés + védelem). */
-    private void dropRandom(Player player, World world) {
-        WorldBorder border = world.getWorldBorder();
-        double min = plugin.getConfig().getDouble("rtp.min-radius", 300);
-        double max = Math.min(plugin.getConfig().getDouble("rtp.max-radius", 3000), border.getSize() / 2 - 16);
-        if (max <= min) {
-            min = 0;
+    // ---------- Biom választó ----------
+
+    private record BiomeGroup(String label, Material icon, Set<String> biomes) {
+    }
+
+    private static final Map<String, BiomeGroup> BIOMES = new LinkedHashMap<>();
+
+    private static void group(String id, String label, Material icon, String... biomes) {
+        BIOMES.put(id, new BiomeGroup(label, icon, Set.of(biomes)));
+    }
+
+    static {
+        group("síkság", "<green>Síkság", Material.GRASS_BLOCK, "plains", "sunflower_plains", "meadow");
+        group("erdő", "<dark_green>Erdő", Material.OAK_SAPLING, "forest", "flower_forest", "birch_forest",
+                "old_growth_birch_forest", "dark_forest");
+        group("tajga", "<dark_aqua>Tajga", Material.SPRUCE_SAPLING, "taiga", "old_growth_pine_taiga",
+                "old_growth_spruce_taiga");
+        group("havas", "<aqua>Havas vidék", Material.SNOW_BLOCK, "snowy_plains", "snowy_taiga", "ice_spikes",
+                "snowy_slopes", "grove");
+        group("sivatag", "<yellow>Sivatag", Material.SAND, "desert");
+        group("badlands", "<gold>Badlands", Material.TERRACOTTA, "badlands", "eroded_badlands", "wooded_badlands");
+        group("szavanna", "<#d4a017>Szavanna", Material.ACACIA_LOG, "savanna", "savanna_plateau",
+                "windswept_savanna");
+        group("dzsungel", "<#32cd32>Dzsungel", Material.JUNGLE_SAPLING, "jungle", "sparse_jungle", "bamboo_jungle");
+        group("mocsár", "<#556b2f>Mocsár", Material.LILY_PAD, "swamp", "mangrove_swamp");
+        group("hegység", "<gray>Hegység", Material.STONE, "windswept_hills", "windswept_forest",
+                "windswept_gravelly_hills", "stony_peaks", "jagged_peaks", "frozen_peaks");
+        group("véletlen", "<light_purple>Véletlen hely", Material.ENDER_PEARL);
+    }
+
+    private static final class MenuHolder implements InventoryHolder {
+        private Inventory inventory;
+
+        @Override
+        public Inventory getInventory() {
+            return inventory;
         }
-        double angle = ThreadLocalRandom.current().nextDouble(0, Math.PI * 2);
-        double distance = ThreadLocalRandom.current().nextDouble(min, Math.max(min + 1, max));
-        int x = (int) Math.floor(border.getCenter().getX() + Math.cos(angle) * distance);
-        int z = (int) Math.floor(border.getCenter().getZ() + Math.sin(angle) * distance);
-        Location target = new Location(world, x + 0.5, Math.min(world.getMaxHeight() - 20, 300), z + 0.5);
-        player.teleportAsync(target).thenAccept(ok -> plugin.getServer().getScheduler().runTask(plugin, () -> {
-            searching.remove(player.getUniqueId());
-            if (!ok || !player.isOnline()) {
-                return;
-            }
-            cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
-            int ticks = 20 * 45;
-            player.addPotionEffect(new org.bukkit.potion.PotionEffect(
-                    org.bukkit.potion.PotionEffectType.SLOW_FALLING, ticks, 0, false, false, true));
-            player.addPotionEffect(new org.bukkit.potion.PotionEffect(
-                    org.bukkit.potion.PotionEffectType.RESISTANCE, ticks, 4, false, false, true));
-            player.addPotionEffect(new org.bukkit.potion.PotionEffect(
-                    org.bukkit.potion.PotionEffectType.FIRE_RESISTANCE, ticks, 0, false, false, true));
-            plugin.send(player, "rtp-done",
-                    Placeholder.unparsed("x", String.valueOf(x)),
-                    Placeholder.unparsed("z", String.valueOf(z)));
-        }));
     }
 
-    private void tryRandom(Player player, World world, int attempt) {
+    private void openBiomeMenu(Player player) {
+        MenuHolder holder = new MenuHolder();
+        Inventory inv = Bukkit.createInventory(holder, 27, plugin.parse("<gradient:#ffd700:#ff8c00><bold>Hová szeretnél menni?"));
+        holder.inventory = inv;
+        ItemStack pane = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
+        ItemMeta paneMeta = pane.getItemMeta();
+        paneMeta.displayName(plugin.parse(" "));
+        pane.setItemMeta(paneMeta);
+        for (int i = 0; i < 27; i++) {
+            inv.setItem(i, pane);
+        }
+        int[] slots = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22};
+        int i = 0;
+        for (Map.Entry<String, BiomeGroup> e : BIOMES.entrySet()) {
+            if (i >= slots.length) {
+                break;
+            }
+            ItemStack item = new ItemStack(e.getValue().icon());
+            ItemMeta meta = item.getItemMeta();
+            meta.displayName(plugin.parse("<!italic>" + e.getValue().label()));
+            meta.lore(List.of(plugin.parse("<!italic><gray>Kattints: véletlen helyre teleportálsz"),
+                    plugin.parse("<!italic><gray>ebben a biomban.")));
+            item.setItemMeta(meta);
+            inv.setItem(slots[i++], item);
+        }
+        player.openInventory(inv);
+    }
+
+    @EventHandler
+    public void onMenuClick(InventoryClickEvent event) {
+        if (!(event.getView().getTopInventory().getHolder() instanceof MenuHolder)) {
+            return;
+        }
+        event.setCancelled(true);
+        if (event.getClickedInventory() != event.getView().getTopInventory()
+                || !(event.getWhoClicked() instanceof Player player)) {
+            return;
+        }
+        int[] slots = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22};
+        int index = -1;
+        for (int k = 0; k < slots.length; k++) {
+            if (slots[k] == event.getSlot()) {
+                index = k;
+            }
+        }
+        if (index < 0 || index >= BIOMES.size()) {
+            return;
+        }
+        String id = new ArrayList<>(BIOMES.keySet()).get(index);
+        player.closeInventory();
+        randomTeleport(player, id);
+    }
+
+    // ---------- Mindig nappal a spawnban ----------
+
+    private final Set<UUID> dayLocked = new HashSet<>();
+
+    private void startDaylight() {
+        plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                boolean inSpawn = plugin.spawn().isProtected(p.getLocation());
+                if (inSpawn) {
+                    p.setPlayerTime(6000, false);
+                    dayLocked.add(p.getUniqueId());
+                } else if (dayLocked.remove(p.getUniqueId())) {
+                    p.resetPlayerTime();
+                }
+            }
+        }, 40L, 40L);
+    }
+
+    private void tryRandom(Player player, World world, String biomeGroup, int attempt) {
         if (!player.isOnline()) {
             searching.remove(player.getUniqueId());
             return;
@@ -438,23 +529,45 @@ public final class LobbyManager implements Listener, CommandExecutor {
         double distance = ThreadLocalRandom.current().nextDouble(min, Math.max(min + 1, max));
         int x = (int) Math.floor(border.getCenter().getX() + Math.cos(angle) * distance);
         int z = (int) Math.floor(border.getCenter().getZ() + Math.sin(angle) * distance);
+        BiomeGroup group = BIOMES.get(biomeGroup);
+        if (group != null && !group.biomes().isEmpty()) {
+            boolean found = false;
+            for (int i = 0; i < 400 && !found; i++) {
+                double a = ThreadLocalRandom.current().nextDouble(0, Math.PI * 2);
+                double d = ThreadLocalRandom.current().nextDouble(min, Math.max(min + 1, max));
+                int sx = (int) Math.floor(border.getCenter().getX() + Math.cos(a) * d);
+                int sz = (int) Math.floor(border.getCenter().getZ() + Math.sin(a) * d);
+                if (group.biomes().contains(world.getBiome(sx, 64, sz).getKey().getKey())) {
+                    x = sx;
+                    z = sz;
+                    found = true;
+                }
+            }
+            if (!found) {
+                searching.remove(player.getUniqueId());
+                plugin.send(player, "rtp-failed");
+                return;
+            }
+        }
+        final int fx = x;
+        final int fz = z;
 
-        world.getChunkAtAsync(x >> 4, z >> 4).thenAccept(chunk ->
+        world.getChunkAtAsync(fx >> 4, fz >> 4).thenAccept(chunk ->
                 plugin.getServer().getScheduler().runTask(plugin, () -> {
-                    int y = world.getHighestBlockYAt(x, z);
-                    Material ground = world.getBlockAt(x, y, z).getType();
+                    int y = world.getHighestBlockYAt(fx, fz);
+                    Material ground = world.getBlockAt(fx, y, fz).getType();
                     if (y <= world.getMinHeight() || UNSAFE.contains(ground)) {
-                        tryRandom(player, world, attempt + 1);
+                        tryRandom(player, world, biomeGroup, attempt + 1);
                         return;
                     }
-                    Location target = new Location(world, x + 0.5, y + 1, z + 0.5);
+                    Location target = new Location(world, fx + 0.5, y + 1, fz + 0.5);
                     player.teleportAsync(target).thenAccept(ok -> {
                         searching.remove(player.getUniqueId());
                         if (ok) {
                             cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
                             plugin.send(player, "rtp-done",
-                                    Placeholder.unparsed("x", String.valueOf(x)),
-                                    Placeholder.unparsed("z", String.valueOf(z)));
+                                    Placeholder.unparsed("x", String.valueOf(fx)),
+                                    Placeholder.unparsed("z", String.valueOf(fz)));
                         }
                     });
                 }));
