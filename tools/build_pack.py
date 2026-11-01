@@ -17,7 +17,12 @@ for name in sorted(os.listdir(SRC)):
     item = name[:-4].lower().replace(" ", "_")
     files[f"assets/smpcore/textures/item/{item}.png"] = open(os.path.join(SRC, name), "rb").read()
     files[f"assets/smpcore/models/item/{item}.json"] = json.dumps(
-        {"parent": "minecraft:item/handheld", "textures": {"layer0": f"smpcore:item/{item}"}}).encode()
+        {"parent": "minecraft:item/handheld", "textures": {"layer0": f"smpcore:item/{item}"},
+         "display": {
+             "thirdperson_righthand": {"rotation": [0, -90, 55], "translation": [0, 4.5, 0.5], "scale": [1.1, 1.1, 1.0]},
+             "thirdperson_lefthand": {"rotation": [0, 90, -55], "translation": [0, 4.5, 0.5], "scale": [1.1, 1.1, 1.0]},
+             "firstperson_righthand": {"rotation": [0, -90, 25], "translation": [1.13, 3.2, 1.13], "scale": [0.95, 0.95, 0.9]},
+             "firstperson_lefthand": {"rotation": [0, 90, -25], "translation": [1.13, 3.2, 1.13], "scale": [0.95, 0.95, 0.9]}}}).encode()
     files[f"assets/smpcore/items/{item}.json"] = json.dumps(
         {"model": {"type": "minecraft:model", "model": f"smpcore:item/{item}"}}).encode()
 path = os.path.join(OUT, "penthouse-pack.zip")
