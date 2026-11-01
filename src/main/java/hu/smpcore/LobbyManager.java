@@ -395,7 +395,6 @@ public final class LobbyManager implements Listener, CommandExecutor {
             return;
         }
         searching.add(id);
-        plugin.send(player, "rtp-searching");
         tryRandom(player, Bukkit.getWorlds().get(0), biomeGroup, 0);
     }
 
@@ -514,9 +513,23 @@ public final class LobbyManager implements Listener, CommandExecutor {
             searching.remove(player.getUniqueId());
             return;
         }
-        if (attempt >= 12) {
-            searching.remove(player.getUniqueId());
-            plugin.send(player, "rtp-failed");
+        if (attempt >= 40) {
+            // Végső tartalék: nem hagyjuk üzenettel abba, hanem az égből ejtjük le
+            double a = ThreadLocalRandom.current().nextDouble(0, Math.PI * 2);
+            double d = ThreadLocalRandom.current().nextDouble(300, 1500);
+            Location sky = new Location(world, world.getWorldBorder().getCenter().getX() + Math.cos(a) * d,
+                    300, world.getWorldBorder().getCenter().getZ() + Math.sin(a) * d);
+            player.teleportAsync(sky).thenAccept(ok -> plugin.getServer().getScheduler().runTask(plugin, () -> {
+                searching.remove(player.getUniqueId());
+                if (ok && player.isOnline()) {
+                    cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
+                    int ticks = 20 * 45;
+                    player.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                            org.bukkit.potion.PotionEffectType.SLOW_FALLING, ticks, 0, false, false, true));
+                    player.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                            org.bukkit.potion.PotionEffectType.RESISTANCE, ticks, 4, false, false, true));
+                }
+            }));
             return;
         }
         WorldBorder border = world.getWorldBorder();
@@ -544,8 +557,7 @@ public final class LobbyManager implements Listener, CommandExecutor {
                 }
             }
             if (!found) {
-                searching.remove(player.getUniqueId());
-                plugin.send(player, "rtp-failed");
+                tryRandom(player, world, "véletlen", attempt + 5);
                 return;
             }
         }
