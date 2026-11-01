@@ -164,7 +164,7 @@ public final class RareItems implements Listener, CommandExecutor, TabCompleter 
         if (s.getBoolean("unbreakable", false)) {
             meta.setUnbreakable(true);
         }
-        String model = s.getString("model", "");
+        String model = s.getString("model", "smpcore:" + id);
         if (!model.isEmpty()) {
             NamespacedKey modelKey = NamespacedKey.fromString(model);
             if (modelKey != null) {
