@@ -254,6 +254,124 @@ public final class RareItems implements Listener, CommandExecutor, TabCompleter 
         victim.getWorld().playSound(victim.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 1f, 0.8f);
     }
 
+    // ---------- Jobb klikkes képességek (15 mp várakozással) ----------
+
+    private final java.util.Map<String, Long> activeCooldown = new java.util.concurrent.ConcurrentHashMap<>();
+
+    @EventHandler
+    public void onUse(org.bukkit.event.player.PlayerInteractEvent event) {
+        if (event.getHand() != org.bukkit.inventory.EquipmentSlot.HAND) {
+            return;
+        }
+        org.bukkit.event.block.Action action = event.getAction();
+        if (action != org.bukkit.event.block.Action.RIGHT_CLICK_AIR
+                && action != org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK) {
+            return;
+        }
+        Player player = event.getPlayer();
+        String id = idOf(player.getInventory().getItemInMainHand());
+        ConfigurationSection s = id == null ? null : section(id);
+        if (s == null) {
+            return;
+        }
+        String type = s.getString("active", s.getString("ability", ""));
+        if (type.isEmpty()) {
+            return;
+        }
+        if (plugin.spawn().isProtected(player.getLocation())) {
+            player.sendActionBar(plugin.parse("<red>A spawnban nem használhatod."));
+            return;
+        }
+        long cooldownMs = s.getLong("active-cooldown", 15) * 1000L;
+        String ckey = player.getUniqueId() + ":" + id;
+        long now = System.currentTimeMillis();
+        Long last = activeCooldown.get(ckey);
+        if (last != null && now - last < cooldownMs) {
+            long left = (cooldownMs - (now - last)) / 1000 + 1;
+            player.sendActionBar(plugin.parse("<red>Várakozás: <white>" + left + " <red>mp"));
+            return;
+        }
+        boolean used = switch (type.toLowerCase(Locale.ROOT)) {
+            case "lightning" -> castLightning(player, s);
+            case "fire" -> castFire(player);
+            case "lifesteal" -> castNova(player, s, Particle.DAMAGE_INDICATOR, 6, true, null);
+            case "freeze" -> castNova(player, s, Particle.SNOWFLAKE, 3, false, PotionEffectType.SLOWNESS);
+            case "wither" -> castNova(player, s, Particle.SMOKE, 4, false, PotionEffectType.WITHER);
+            default -> false;
+        };
+        if (used) {
+            activeCooldown.put(ckey, now);
+            player.sendActionBar(plugin.parse("<green>Képesség használva!"));
+        }
+    }
+
+    private boolean castLightning(Player player, ConfigurationSection s) {
+        double range = s.getDouble("range", 40);
+        org.bukkit.util.RayTraceResult hit = player.getWorld().rayTrace(player.getEyeLocation(),
+                player.getEyeLocation().getDirection(), range, org.bukkit.FluidCollisionMode.NEVER, true, 0.6,
+                e -> e != player && e instanceof LivingEntity);
+        if (hit == null) {
+            player.sendActionBar(plugin.parse("<red>Nincs célpont a közelben."));
+            return false;
+        }
+        Location target = hit.getHitPosition().toLocation(player.getWorld());
+        if (plugin.spawn().isProtected(target)) {
+            player.sendActionBar(plugin.parse("<red>Ide nem csaphatsz le."));
+            return false;
+        }
+        player.getWorld().strikeLightningEffect(target);
+        double damage = s.getDouble("active-damage", 8);
+        for (org.bukkit.entity.Entity e : target.getWorld().getNearbyEntities(target, 3, 3, 3)) {
+            if (e instanceof LivingEntity living && e != player) {
+                living.damage(damage, player);
+                living.setFireTicks(60);
+            }
+        }
+        return true;
+    }
+
+    private boolean castFire(Player player) {
+        for (int i = -1; i <= 1; i++) {
+            org.bukkit.util.Vector dir = player.getEyeLocation().getDirection().clone()
+                    .rotateAroundY(Math.toRadians(i * 10));
+            org.bukkit.entity.SmallFireball ball = player.launchProjectile(org.bukkit.entity.SmallFireball.class, dir.multiply(1.4));
+            ball.setShooter(player);
+        }
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_BLAZE_SHOOT, 1f, 1f);
+        return true;
+    }
+
+    private boolean castNova(Player player, ConfigurationSection s, Particle particle, double damage, boolean heal,
+                             PotionEffectType effect) {
+        double radius = s.getDouble("active-radius", 6);
+        double dmg = s.getDouble("active-damage", damage);
+        double healed = 0;
+        for (org.bukkit.entity.Entity e : player.getNearbyEntities(radius, radius, radius)) {
+            if (e instanceof LivingEntity living && !(e instanceof org.bukkit.entity.ArmorStand)
+                    && !plugin.spawn().isProtected(living.getLocation())) {
+                living.damage(dmg, player);
+                healed += dmg;
+                if (effect != null) {
+                    living.addPotionEffect(new PotionEffect(effect, 100, 1));
+                }
+                if (particle == Particle.SNOWFLAKE) {
+                    living.setFreezeTicks(160);
+                }
+            }
+        }
+        if (heal && healed > 0) {
+            double max = player.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue();
+            player.setHealth(Math.min(max, player.getHealth() + healed / 2));
+        }
+        for (int i = 0; i < 40; i++) {
+            double a = Math.PI * 2 * i / 40;
+            player.getWorld().spawnParticle(particle, player.getLocation().add(Math.cos(a) * radius * 0.8, 0.5,
+                    Math.sin(a) * radius * 0.8), 2, 0.1, 0.2, 0.1, 0.01);
+        }
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_EVOKER_CAST_SPELL, 1f, 1f);
+        return true;
+    }
+
     private void aura() {
         for (Player player : Bukkit.getOnlinePlayers()) {
             String id = idOf(player.getInventory().getItemInMainHand());

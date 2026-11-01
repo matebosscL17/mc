@@ -665,6 +665,7 @@ survival:
 
 # Ritka, egyedi tárgyak. Adás: /rareitem give <játékos> <id>; ládában: item: "rare:<id>"
 # ability: lightning | lifesteal | freeze | fire | wither, chance: esély (0-1), amount: erősség
+# Jobb klikkes képesség: ugyanaz a típus, active-cooldown (mp, alap 15), active-damage, active-radius, range
 # model: másik tárgy kinézete (pl. minecraft:trident); particle: aura a kézben tartva; color: bőr páncélhoz
 rare-items:
   storm_blade:
