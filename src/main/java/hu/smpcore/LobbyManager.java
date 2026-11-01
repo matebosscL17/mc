@@ -383,8 +383,39 @@ public final class LobbyManager implements Listener, CommandExecutor {
             return;
         }
         searching.add(id);
-        plugin.send(player, "rtp-searching");
-        tryRandom(player, Bukkit.getWorlds().get(0), 0);
+        dropRandom(player, Bukkit.getWorlds().get(0));
+    }
+
+    /** Nem keres helyet: véletlen koordinátára azonnal az égből ejti le a játékost (lassú esés + védelem). */
+    private void dropRandom(Player player, World world) {
+        WorldBorder border = world.getWorldBorder();
+        double min = plugin.getConfig().getDouble("rtp.min-radius", 300);
+        double max = Math.min(plugin.getConfig().getDouble("rtp.max-radius", 3000), border.getSize() / 2 - 16);
+        if (max <= min) {
+            min = 0;
+        }
+        double angle = ThreadLocalRandom.current().nextDouble(0, Math.PI * 2);
+        double distance = ThreadLocalRandom.current().nextDouble(min, Math.max(min + 1, max));
+        int x = (int) Math.floor(border.getCenter().getX() + Math.cos(angle) * distance);
+        int z = (int) Math.floor(border.getCenter().getZ() + Math.sin(angle) * distance);
+        Location target = new Location(world, x + 0.5, Math.min(world.getMaxHeight() - 20, 300), z + 0.5);
+        player.teleportAsync(target).thenAccept(ok -> plugin.getServer().getScheduler().runTask(plugin, () -> {
+            searching.remove(player.getUniqueId());
+            if (!ok || !player.isOnline()) {
+                return;
+            }
+            cooldowns.put(player.getUniqueId(), System.currentTimeMillis());
+            int ticks = 20 * 45;
+            player.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                    org.bukkit.potion.PotionEffectType.SLOW_FALLING, ticks, 0, false, false, true));
+            player.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                    org.bukkit.potion.PotionEffectType.RESISTANCE, ticks, 4, false, false, true));
+            player.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                    org.bukkit.potion.PotionEffectType.FIRE_RESISTANCE, ticks, 0, false, false, true));
+            plugin.send(player, "rtp-done",
+                    Placeholder.unparsed("x", String.valueOf(x)),
+                    Placeholder.unparsed("z", String.valueOf(z)));
+        }));
     }
 
     private void tryRandom(Player player, World world, int attempt) {
