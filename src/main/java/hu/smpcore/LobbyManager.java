@@ -193,7 +193,7 @@ public final class LobbyManager implements Listener, CommandExecutor {
             plugin.send(admin, "lobby-wrong-world");
             return;
         }
-        int configured = plugin.getConfig().getInt("lobby.platform-radius", 80);
+        int configured = plugin.getConfig().getInt("lobby.build-radius", 80);
         if (radiusArg != null) {
             try {
                 configured = Integer.parseInt(radiusArg);

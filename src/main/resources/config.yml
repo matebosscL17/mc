@@ -242,7 +242,7 @@ spawn-protection:
 # Lobby: /lobby build egy Penthouse stílusú lebegő platformot épít oda, ahol állsz, és ez lesz a spawn.
 # Használat: repülj (creative) a kívánt magasságba, pl. /tp @s 0 200 0, majd /lobby build
 lobby:
-  platform-radius: 24
+  build-radius: 80
   # true = minden belépéskor a lobbyba kerül a játékos, false = csak az első belépéskor és haláláskor
   teleport-on-join: false
 
