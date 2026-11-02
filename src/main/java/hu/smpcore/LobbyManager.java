@@ -193,7 +193,7 @@ public final class LobbyManager implements Listener, CommandExecutor {
             plugin.send(admin, "lobby-wrong-world");
             return;
         }
-        int configured = plugin.getConfig().getInt("lobby.platform-radius", 48);
+        int configured = plugin.getConfig().getInt("lobby.platform-radius", 80);
         if (radiusArg != null) {
             try {
                 configured = Integer.parseInt(radiusArg);
@@ -201,7 +201,7 @@ public final class LobbyManager implements Listener, CommandExecutor {
                 // marad a configban megadott
             }
         }
-        int radius = Math.max(12, Math.min(64, configured));
+        int radius = Math.max(12, Math.min(128, configured));
         int cx = admin.getLocation().getBlockX();
         int cz = admin.getLocation().getBlockZ();
         int cy = admin.getLocation().getBlockY() - 1;

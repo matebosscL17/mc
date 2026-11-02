@@ -112,8 +112,9 @@ final class LobbyDesign {
                 }
             }
         }
-        for (int i = 0; i < 24; i++) {
-            double a = i * Math.PI / 12;
+        int pillars = Math.max(24, radius / 2);
+        for (int i = 0; i < pillars; i++) {
+            double a = i * Math.PI * 2 / pillars;
             int x = (int) Math.round((radius - 1) * Math.cos(a));
             int z = (int) Math.round((radius - 1) * Math.sin(a));
             for (int dy = 1; dy <= 5; dy++) {
@@ -122,12 +123,20 @@ final class LobbyDesign {
             p.set(x, 6, z, Material.SEA_LANTERN);
         }
 
-        // 6) Központi szökőkút: 3 szint
-        for (int dx = -9; dx <= 9; dx++) {
-            for (int dz = -9; dz <= 9; dz++) {
-                int d2 = dx * dx + dz * dz;
-                if (d2 <= 64) {
-                    if (d2 > 49) {
+        // 6) Központi szökőkút: 3 szint (a sziget méretével nő)
+        double sc = Math.max(1.0, radius / 48.0);
+        double r1 = 8 * sc;
+        double r1i = 7 * sc;
+        double r2 = 5 * sc;
+        double r2i = 4 * sc;
+        double r3 = 2.45 * sc;
+        double r3i = 1.41 * sc;
+        int fb = (int) Math.ceil(9 * sc);
+        for (int dx = -fb; dx <= fb; dx++) {
+            for (int dz = -fb; dz <= fb; dz++) {
+                double d = Math.sqrt(dx * dx + dz * dz);
+                if (d <= r1) {
+                    if (d > r1i) {
                         p.set(dx, 0, dz, Material.QUARTZ_BLOCK);
                         p.set(dx, 1, dz, Material.QUARTZ_BLOCK);
                     } else {
@@ -135,8 +144,8 @@ final class LobbyDesign {
                         p.set(dx, 0, dz, Material.WATER);
                     }
                 }
-                if (d2 <= 25) {
-                    if (d2 > 16) {
+                if (d <= r2) {
+                    if (d > r2i) {
                         p.set(dx, 1, dz, Material.SMOOTH_QUARTZ);
                         p.set(dx, 2, dz, Material.SMOOTH_QUARTZ);
                     } else {
@@ -144,8 +153,8 @@ final class LobbyDesign {
                         p.set(dx, 2, dz, Material.WATER);
                     }
                 }
-                if (d2 <= 6) {
-                    if (d2 > 2) {
+                if (d <= r3) {
+                    if (d > r3i) {
                         p.set(dx, 3, dz, Material.QUARTZ_BLOCK);
                         p.set(dx, 4, dz, Material.QUARTZ_BLOCK);
                     } else {
@@ -155,11 +164,12 @@ final class LobbyDesign {
                 }
             }
         }
-        for (int dy = 3; dy <= 9; dy++) {
+        int top = 9 + (int) Math.round((sc - 1) * 3);
+        for (int dy = 3; dy <= top; dy++) {
             p.set(0, dy, 0, Material.QUARTZ_PILLAR);
         }
-        p.set(0, 10, 0, Material.GOLD_BLOCK);
-        p.set(0, 11, 0, Material.SEA_LANTERN);
+        p.set(0, top + 1, 0, Material.GOLD_BLOCK);
+        p.set(0, top + 2, 0, Material.SEA_LANTERN);
 
         // 7) Kapuk: négy égtáj, a peremnél (két oszlop + gerenda + fény)
         int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
@@ -200,9 +210,10 @@ final class LobbyDesign {
             }
         }
 
-        // 9) Fák a kertben (cseresznye és tölgy), 14 darab
-        for (int i = 0; i < 14; i++) {
-            double a = i * Math.PI * 2 / 14 + 0.2;
+        // 9) Fák a kertben (cseresznye és tölgy), a mérettel arányosan
+        int trees = Math.max(14, radius * 14 / 48);
+        for (int i = 0; i < trees; i++) {
+            double a = i * Math.PI * 2 / trees + 0.2;
             double r = (plazaR + gardenR) / 2 + (i % 2 == 0 ? 2 : -1);
             int tx = (int) Math.round(r * Math.cos(a));
             int tz = (int) Math.round(r * Math.sin(a));
@@ -228,8 +239,9 @@ final class LobbyDesign {
         }
 
         // 10) Lebegő szigetecskék a nagy sziget körül
-        for (int i = 0; i < 6; i++) {
-            double a = i * Math.PI / 3 + 0.5;
+        int islands = Math.max(6, radius / 8);
+        for (int i = 0; i < islands; i++) {
+            double a = i * Math.PI * 2 / islands + 0.5;
             int ix = (int) Math.round((radius + 16) * Math.cos(a));
             int iz = (int) Math.round((radius + 16) * Math.sin(a));
             int iy = (i % 3) * 3 - 2;
