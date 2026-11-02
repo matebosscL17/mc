@@ -4,6 +4,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.WorldBorder;
 import org.bukkit.block.Block;
@@ -100,6 +101,7 @@ public final class LobbyManager implements Listener, CommandExecutor {
         this.file = new File(plugin.getDataFolder(), "lobby.yml");
         this.data = file.exists() ? YamlConfiguration.loadConfiguration(file) : new YamlConfiguration();
         startDaylight();
+        startGateEffects();
     }
 
     // ---------- Lobby hely ----------
@@ -254,6 +256,7 @@ public final class LobbyManager implements Listener, CommandExecutor {
         if (plugin.getConfig().getBoolean("lobby.big-design", true)) {
             LobbyDesign.afterBuild(plugin, world, cx, cy, cz, radius);
         }
+        registerGates(world, cx, cy, cz, radius);
         world.setSpawnLocation(spawn);
         saveLobby(spawn);
         plugin.getLogger().info("Lobby elkészült: " + cx + ", " + cy + ", " + cz);
@@ -567,6 +570,93 @@ public final class LobbyManager implements Listener, CommandExecutor {
         if (event.getEntity() instanceof Player p && spawnWarming.remove(p.getUniqueId()) != null) {
             p.sendMessage(plugin.parse(text("spawn-cancel-damage", "<red>Sérülés miatt a teleport megszakadt.")));
         }
+    }
+
+    // ---------- Kapuk: belépve véletlen helyre visznek ----------
+
+    private static final int[][] GATE_DIRS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+
+    private void registerGates(World world, int cx, int cy, int cz, int radius) {
+        data.set("gates.world", world.getName());
+        data.set("gates.cx", cx);
+        data.set("gates.cy", cy);
+        data.set("gates.cz", cz);
+        data.set("gates.d", radius - 8);
+    }
+
+    /** Melyik kapuban áll a hely (0-3), vagy -1. */
+    private int gateAt(Location loc) {
+        if (!data.contains("gates.world") || loc.getWorld() == null
+                || !loc.getWorld().getName().equals(data.getString("gates.world"))) {
+            return -1;
+        }
+        int cx = data.getInt("gates.cx");
+        int cy = data.getInt("gates.cy");
+        int cz = data.getInt("gates.cz");
+        int d = data.getInt("gates.d");
+        double y = loc.getY() - cy;
+        if (y < 0.5 || y > 9) {
+            return -1;
+        }
+        double rx = loc.getX() - (cx + 0.5);
+        double rz = loc.getZ() - (cz + 0.5);
+        for (int i = 0; i < GATE_DIRS.length; i++) {
+            int[] dir = GATE_DIRS[i];
+            double along = rx * dir[0] + rz * dir[1];
+            double lateral = Math.abs(rx * dir[1] + rz * dir[0]);
+            if (Math.abs(along - d) <= 1.2 && lateral <= 2.4) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    @EventHandler
+    public void onGateMove(org.bukkit.event.player.PlayerMoveEvent event) {
+        Location to = event.getTo();
+        if (to == null || (event.getFrom().getBlockX() == to.getBlockX()
+                && event.getFrom().getBlockY() == to.getBlockY()
+                && event.getFrom().getBlockZ() == to.getBlockZ())) {
+            return;
+        }
+        if (gateAt(to) >= 0) {
+            Player player = event.getPlayer();
+            if (!searching.contains(player.getUniqueId())) {
+                player.sendActionBar(plugin.parse("<light_purple>Véletlen helyre teleportálsz..."));
+                randomTeleport(player, "véletlen");
+            }
+        }
+    }
+
+    private void startGateEffects() {
+        plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            if (!data.contains("gates.world")) {
+                return;
+            }
+            World world = Bukkit.getWorld(data.getString("gates.world", ""));
+            if (world == null || world.getPlayers().isEmpty()) {
+                return;
+            }
+            int cx = data.getInt("gates.cx");
+            int cy = data.getInt("gates.cy");
+            int cz = data.getInt("gates.cz");
+            int d = data.getInt("gates.d");
+            for (int[] dir : GATE_DIRS) {
+                double gx = cx + 0.5 + dir[0] * d;
+                double gz = cz + 0.5 + dir[1] * d;
+                for (int k = 0; k < 14; k++) {
+                    double lateral = (Math.random() * 5) - 2.5;
+                    double h = 1 + Math.random() * 7;
+                    world.spawnParticle(Particle.PORTAL, gx + dir[1] * lateral, cy + h, gz + dir[0] * lateral,
+                            2, 0.05, 0.05, 0.05, 0.4);
+                }
+                for (int k = 0; k < 3; k++) {
+                    double lateral = (Math.random() * 5) - 2.5;
+                    world.spawnParticle(Particle.END_ROD, gx + dir[1] * lateral, cy + 1 + Math.random() * 7,
+                            gz + dir[0] * lateral, 1, 0.02, 0.02, 0.02, 0.01);
+                }
+            }
+        }, 40L, 6L);
     }
 
     // ---------- Mindig nappal a spawnban ----------
